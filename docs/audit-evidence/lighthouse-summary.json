@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:3210/",
+  "fetchTime": "2026-11-05T18:00:28.213Z",
+  "lighthouseVersion": "13.6.0",
+  "performance": 0.76,
+  "accessibility": 1,
+  "LCP": 3243.104,
+  "TBT": 658,
+  "CLS": 0.01258469088083587
+}
