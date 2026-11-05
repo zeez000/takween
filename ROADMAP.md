@@ -47,3 +47,6 @@ explicit owner approval for hosting/publication. No deployment in this phase.
 
 ## Cinematic milestone completed
 TAKWEEN branding, optional entry, original procedural assembly, reversible native-scroll choreography, drag/reset/zoom, fallbacks and browser regressions are implemented. See BLUEPRINT_AUDIT.md for remaining blueprint scope and VERIFICATION.md for actual results.
+
+## Supabase approval milestone
+Review docs/SUPABASE_PLAN.md. No backend implementation or migration before owner approval.

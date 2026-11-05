@@ -1,0 +1,30 @@
+name: Takween checks
+on:
+  push:
+    branches: [master, 'codex/**']
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium webkit firefox
+      - run: npx playwright test --workers=1
+      - run: npx playwright test -c playwright.audit.config.ts --workers=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: test-results/
+          if-no-files-found: ignore
+      - run: echo 'Live Supabase tests NOT RUN - backend not implemented; approval required.'
