@@ -8,3 +8,8 @@ playwright-report/
 test-results/
 artifacts/
 *.log
+
+# Cloudflare generated output and local environment bindings
+.open-next/
+.wrangler/
+.dev.vars*
