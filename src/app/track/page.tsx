@@ -1,0 +1,3 @@
+import Link from "next/link";
+import {SectionHeading} from "@/components/ui";
+export default function TrackingPreview(){return <main id="main-content" className="shell section narrow-page"><Link className="text-link" href="/">← Return to the studio</Link><SectionHeading eyebrow="ORDER TRACKING / PLANNED" title="Your part. Its next step.">Tracking will become available after the ordering system is implemented. This preview does not accept order numbers or display customer records.</SectionHeading><p className="notice">Future tracking access will require verification. Sequential or guessable order numbers will not grant access.</p></main>;}
