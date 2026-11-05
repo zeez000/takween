@@ -10,7 +10,7 @@ test("viewport, keyboard, route, network and layout audit",async({page},info)=>{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   // WebKit default link-tabbing follows Safari keyboard preferences; verify focus/activation explicitly there.
   if(info.project.name==="webkit")await page.getByRole("link",{name:"Skip to content"}).focus();else await page.keyboard.press("Tab");await expect(page.getByRole("link",{name:"Skip to content"})).toBeFocused();
-  const menu=page.getByRole("button",{name:"Open menu"});if(await menu.isVisible()){await menu.click();await expect(page.getByRole("navigation")).toBeVisible();await page.screenshot({path:info.outputPath(`${width}-navigation.png`)});await page.keyboard.press("Escape");}
+  const menu=page.getByRole("button",{name:"Open menu"});if(await menu.isVisible()){await menu.click();await expect(page.getByRole("navigation")).toBeVisible();await page.screenshot({path:info.outputPath(`${width}-navigation.png`)});await page.getByRole("button",{name:"Close menu"}).click();await expect(page.getByRole("navigation")).not.toBeVisible();}
   await page.screenshot({path:info.outputPath(`${width}-home.png`)});
   await page.locator("#quote").scrollIntoViewIfNeeded();await expect(page.getByLabel("Your name",{exact:true})).toBeVisible();
   await page.screenshot({path:info.outputPath(`${width}-quote.png`)});

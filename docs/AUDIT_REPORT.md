@@ -106,3 +106,5 @@ Audit checkout: C:\Users\user\.codex\worktrees\takween-audit\takween.
 Use a separate port when previewing audit checkout; never displace the user's 3000.
 Backend work waits for explicit schema/security approval described in SUPABASE_PLAN.md.
 Original production regression suite: 22 passed, 2 Chromium-specific scenarios intentionally skipped in WebKit. Real WebGL transforms and CDP native touch gestures passed in Chromium.
+
+Manual screenshot review: Escape while focus stays on the mobile menu toggle does not dismiss navigation (Escape is handled only inside nav). The visible Close menu button works. This keyboard improvement is reported, not applied, to honour the request for unchanged frontend functionality. Screenshot tests explicitly close the menu through its supported control before capturing the quote form.
