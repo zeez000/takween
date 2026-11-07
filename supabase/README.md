@@ -45,3 +45,6 @@ credentials or design contents. Browser validation is UX only, not security.
 Implement database constraints/functions, RLS policies, storage policies,
 server validation and integration tests before turning this proposal into migrations.
 No permissive fallback policies or privileged credentials in browser code.
+
+## Client integration status
+Browser/server Supabase helpers are available under src/lib/supabase. See CLIENT_SETUP.md. A safe Auth-settings connection check succeeds with local public configuration. No schema, authentication workflow, private storage or business feature has been implemented or verified by this setup. This proposal remains unapplied.

@@ -20,16 +20,18 @@ test("mobile menu supports touch navigation",async({page})=>{
 });
 test("draft and file selection stay local and never imply an upload",async({page})=>{
  await page.goto("/");await page.getByLabel("Your name",{exact:true}).fill("Preview user");
- await page.getByLabel("Email or phone").fill("preview@example.invalid");
+ await page.getByLabel("Your email").fill("preview@example.invalid");
  await page.getByLabel("Tell us about your idea").fill("A concept enclosure for design review.");
  const fileInput=page.getByLabel("Select a design file for local validation");
  await fileInput.setInputFiles({name:"unsupported.txt",mimeType:"text/plain",buffer:Buffer.from("preview")});
  await expect(page.locator("#file-result")).toContainText("Choose an STL");
  await page.getByRole("button",{name:"Prepare enquiry draft"}).click();await expect(page.getByLabel("Your enquiry draft")).toHaveCount(0);
  await fileInput.setInputFiles({name:"concept.stl",mimeType:"application/octet-stream",buffer:Buffer.from("solid preview\nendsolid preview")});
+ expect(await page.locator("form.quote-form").evaluate(form=>Array.from(new FormData(form as HTMLFormElement).keys()))).toEqual([]);
  const writes:string[]=[];page.on("request",request=>{if(["POST","PUT","PATCH","DELETE"].includes(request.method()))writes.push(request.url());});
  await page.getByRole("button",{name:"Prepare enquiry draft"}).click();
  await expect(page.getByLabel("Your enquiry draft")).toHaveValue(/Preview user/);
+ await expect(page.getByRole("link",{name:"Open email app"})).toHaveAttribute("href","mailto:takweenlabs.in@gmail.com");
  await expect(page.getByText("Draft prepared on this device. Nothing has been sent.")).toBeVisible();
  await expect(page.locator("#file-result")).toContainText("Not uploaded");expect(writes).toEqual([]);
  await page.getByLabel("Your name",{exact:true}).fill("Changed name");await expect(page.getByLabel("Your enquiry draft")).toHaveCount(0);

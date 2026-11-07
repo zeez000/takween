@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type {Metadata} from "next";
+import {getSeoConfig} from "@/lib/seo";
 import {AssemblyExperience} from "@/components/assembly/assembly-experience";
 import {EntryScreen} from "@/components/entry-screen";
 import {Header} from "@/components/header";
@@ -7,10 +9,16 @@ import {QuoteForm} from "@/components/quote-form";
 import {Reveal} from "@/components/reveal";
 import {ButtonLink,Placeholder,SectionHeading} from "@/components/ui";
 import {serviceCategories,site} from "@/config/site";
-import {whatsappUrl} from "@/lib/enquiry";
+const seo = getSeoConfig();
+export const metadata:Metadata={alternates:seo.url?{canonical:`${seo.url}/`}:undefined};
+const organization = {
+  "@context":"https://schema.org", "@type":"Organization",
+  name:"TAKWEEN LABS", alternateName:site.name, description:site.description,
+  ...(seo.url?{url:seo.url}:{}),
+  areaServed:{"@type":"City",name:"Bengaluru",alternateName:"Bangalore"}
+};
 export default function Home() {
-  const contact=whatsappUrl(site.whatsappNumber,"Hello, I would like to discuss a custom 3D printing project.");
-  return <><EntryScreen/><Header/><main id="main-content">
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organization).replace(/</g,"\\u003c")}}/><EntryScreen/><Header/><main id="main-content">
     <section className="hero shell" aria-labelledby="hero-title">
       <div className="hero-copy"><p className="eyebrow"><span className="status-dot"/>{site.location}</p><p className="hero-prelude">FROM AN IDEA. TO SOMETHING REAL.</p><h1 id="hero-title">YOU NAME IT.<br/><span>WE MAKE IT.</span></h1><p className="hero-description">Custom plastic 3D printing for the things you imagine, the problems you solve, and the parts you need next.</p><div className="button-row"><ButtonLink href="#quote">Start with your idea ↗</ButtonLink><ButtonLink href="#process" secondary>See how it works ↓</ButtonLink></div><div className="hero-footnote"><span>{site.serviceStatus}</span><span>Custom FDM / PLA / PETG</span></div></div>
       <PartVisual/>
@@ -32,5 +40,5 @@ export default function Home() {
     <section id="quote" className="quote-band"><div className="shell section quote-layout"><div><SectionHeading eyebrow="06 / YOUR NEXT PROJECT" title="Let's start with an idea.">Prepare a project brief. We will add secure file submission and enquiry management in a later phase.</SectionHeading><div className="quote-aside"><p className="eyebrow">BEFORE YOU BEGIN</p><p>Include what the part needs to do, approximate dimensions, quantity and preferred material if you know it.</p><p>STL and 3MF describe printable geometry. STEP files need conversion and review before slicing.</p><p className="form-note">This preview stores no form data and uploads no files. Reloading the page clears your draft.</p></div></div><QuoteForm/></div></section>
     <section className="shell section"><div className="cards two-columns"><Placeholder title="Private order tracking">A future order page will show approved production updates through an authorised customer session or expiring access link.<Link className="text-link" href="/track">See tracking status →</Link></Placeholder><Placeholder title="Product catalogue">Approved products, genuine photographs and confirmed details will be published here as the business develops.</Placeholder></div></section>
     <section id="fateen" className="shell section fateen-section"><Reveal><p className="eyebrow">THE INDUSTRIAL FOUNDATION</p><h2>NEED SOMETHING<br/>BEYOND PLASTIC?</h2><div className="fateen-layout"><div><h3>{site.fateen.name}</h3><p>The planned home of the 3D printing studio brings a connection to an existing factory. Potential machining capabilities can be discussed after their scope and availability are confirmed.</p><p className="fateen-statement">{site.fateen.statement}</p></div><div><ul className="capability-tags">{site.fateen.capabilities.map(capability=><li key={capability.name}><span>{capability.name}</span><small>Availability unconfirmed</small></li>)}</ul><p className="form-note">Listed for context only. These capabilities are not open for booking through this website.</p></div></div></Reveal></section>
-  </main><footer className="footer"><div className="shell"><div className="footer-top"><div className="wordmark"><strong>{site.name}<span>.</span></strong><small>{site.tagline}</small></div><div><p>{site.location}</p>{contact?<a className="text-link" href={contact} target="_blank" rel="noopener noreferrer">Contact on WhatsApp ↗</a>:<p className="form-note">Business contact details awaiting confirmation.</p>}</div></div><div className="footer-bottom"><p>Independent 3D printing identity · Foundation preview</p><Link href="/admin">Operations preview →</Link></div></div></footer></>;
+  </main><footer className="footer"><div className="shell"><div className="footer-top"><div className="wordmark"><strong>{site.name}<span>.</span></strong><small>{site.tagline}</small></div><div><p>{site.location}</p><a className="text-link" href={`mailto:${site.enquiryEmail}`}>{site.enquiryEmail}</a></div></div><div className="footer-bottom"><p>Independent 3D printing identity · Foundation preview</p><Link href="/admin">Operations preview →</Link></div></div></footer></>;
 }

@@ -74,7 +74,7 @@ export function AssemblyExperience() {
         setLoaded(true);
       } catch { setFailed(true); }
       observer.disconnect();
-    }, {rootMargin: "180px"});
+    });
     observer.observe(section);
     const entered = () => { observer.unobserve(section); observer.observe(section); };
     window.addEventListener("takween:entered", entered);

@@ -12,19 +12,27 @@
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/enquiry.test.ts tests/assembly.test.ts",
+    "test": "node --experimental-strip-types --test tests/enquiry.test.ts tests/assembly.test.ts tests/seo.test.ts tests/preview-build.test.mjs",
     "test:e2e": "npm run build && playwright test",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "build:preview": "node --experimental-strip-types scripts/build-preview.mjs",
+    "preview:cloudflare": "wrangler dev --local --port 8787",
+    "deploy:cloudflare": "wrangler deploy"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
     "@fontsource/space-grotesk": "^5.3.0",
+    "@opennextjs/cloudflare": "^1.20.16",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "motion": "^12.0.0",
-    "next": "^16.0.0",
+    "next": "16.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
     "three": "^0.180.0"
   },
   "devDependencies": {
@@ -37,7 +45,16 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "wrangler": "^4.158.0"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "@node-minify/core": {
+      "glob": "^10.5.0"
+    },
+    "@opennextjs/cloudflare": {
+      "glob": "^10.5.0"
+    }
+  }
 }
