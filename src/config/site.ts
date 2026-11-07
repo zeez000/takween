@@ -5,8 +5,7 @@ export const site = {
   location: "Rajajinagar, Bengaluru",
   description: "A planned custom plastic FDM 3D printing studio in Rajajinagar, Bengaluru. Explore PLA and PETG printing for prototypes, practical parts and personal ideas.",
   serviceStatus: "Preparing to launch",
-  // Digits with country code. Confirm before enabling contact.
-  whatsappNumber: "",
+  enquiryEmail: "takweenlabs.in@gmail.com",
   capabilities: {
     technology: "Plastic FDM", materials: ["PLA", "PETG"],
     buildVolume: "To be confirmed", layerHeights: "To be confirmed",

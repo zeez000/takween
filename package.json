@@ -12,10 +12,11 @@
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/enquiry.test.ts tests/assembly.test.ts",
+    "test": "node --experimental-strip-types --test tests/enquiry.test.ts tests/assembly.test.ts tests/seo.test.ts tests/preview-build.test.mjs",
     "test:e2e": "npm run build && playwright test",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "build:cloudflare": "opennextjs-cloudflare build",
+    "build:preview": "node --experimental-strip-types scripts/build-preview.mjs",
     "preview:cloudflare": "wrangler dev --local --port 8787",
     "deploy:cloudflare": "wrangler deploy"
   },

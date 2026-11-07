@@ -1,11 +1,16 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "takween-labs-preview",
+  "account_id": "86401cad0432f54a806404883ec7b39f",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-04",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "takween-labs-preview" }],
   "workers_dev": true,
+  "vars": {
+    "SITE_URL": "https://takween-labs-preview.abdzeez000.workers.dev",
+    "SITE_INDEXING_ENABLED": "false"
+  },
   "observability": { "enabled": false }
 }

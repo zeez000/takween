@@ -11,7 +11,3 @@ export function validateDesignFile(file: {name:string;size:number}): string | nu
 export function formatEnquiry(draft:EnquiryDraft): string {
   return ["Custom 3D printing enquiry",`Name: ${draft.name.trim()}`,`Contact: ${draft.contact.trim()}`,`Material: ${draft.material}`,`Quantity: ${draft.quantity}`,`Project: ${draft.details.trim()}`,"Please review feasibility, price and turnaround.","No design file is attached to this message."].join("\n");
 }
-export function whatsappUrl(number:string,message:string): string | null {
-  if (!/^[1-9]\d{7,14}$/.test(number)) return null;
-  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-}
