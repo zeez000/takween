@@ -1,5 +1,4 @@
 import {NextResponse} from "next/server";
-import {ALLOWED_EXTENSIONS} from "@/lib/enquiry";
 
 export const runtime = "nodejs";
 const DESTINATION = "takweenlabs.in@gmail.com";
@@ -9,12 +8,16 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(request:Request) {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
-  if (!origin || !host || new URL(origin).host!==host)
+  let originHost = "";
+  try { originHost = origin ? new URL(origin).host : ""; } catch { /* invalid origin */ }
+  if (!originHost || !host || originHost!==host)
     return NextResponse.json({error:"Forbidden."},{status:403});
   const key = process.env.RESEND_API_KEY;
   if (!key) return NextResponse.json({error:"Enquiry delivery is not configured."},{status:503});
   if (Number(request.headers.get("content-length")||0)>12000)
     return NextResponse.json({error:"Request too large."},{status:413});
+  if (request.headers.get("content-type")?.split(";")[0]?.trim()!=="application/json")
+    return NextResponse.json({error:"Expected JSON."},{status:415});
   let body:Record<string,unknown>;
   try {body = await request.json();} catch {
     return NextResponse.json({error:"Invalid request."},{status:400});
