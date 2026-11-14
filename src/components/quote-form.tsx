@@ -7,17 +7,29 @@ export function QuoteForm() {
   const [fileError,setFileError]=useState("");
   const [draft,setDraft]=useState("");
   const [message,setMessage]=useState("");
-  function prepare(event:FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setMessage(""); setDraft("");
+  const [sending,setSending]=useState(false);
+  const [sent,setSent]=useState(false);
+  async function prepare(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setMessage(""); setDraft(""); setSent(false);
     if(fileError){setMessage("Remove or replace the unsupported file before preparing a draft.");return;}
     // Unnamed controls keep draft values out of native submissions before hydration.
     const controls=event.currentTarget.elements;
     const value=(id:string)=>(controls.namedItem(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
-    setDraft(formatEnquiry({
+    const values = {
       name:value("draft-name"),contact:value("draft-email"),material:value("draft-material"),
       quantity:value("draft-quantity"),details:value("draft-details")
-    }));
-    setMessage("Draft prepared on this device. Nothing has been sent.");
+    };
+    setSending(true);
+    try {
+      const response = await fetch("/api/enquiry",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,email:values.contact,website:""})});
+      if (!response.ok) throw new Error("Delivery failed");
+      setSent(true);
+      setMessage("Enquiry sent successfully. We will reply by email.");
+      event.currentTarget.reset(); setFileName("");
+    } catch {
+      setDraft(formatEnquiry(values));
+      setMessage("We could not send your enquiry. Copy the draft below and email it to us.");
+    } finally {setSending(false);}
   }
   return <form className="quote-form" onSubmit={prepare} onChange={()=>{setDraft("");setMessage("");}}>
     <div className="form-grid">
@@ -33,10 +45,10 @@ export function QuoteForm() {
       <input id="design-file" type="file" accept=".stl,.3mf,.step,.stp" aria-describedby="file-help file-result" aria-invalid={Boolean(fileError)} onChange={event=>{const file=event.currentTarget.files?.[0];const error=file?validateDesignFile(file):null;setFileError(error??"");setFileName(file&&!error?file.name:"");}}/>
       <p id="file-result" role="status">{fileError||(fileName?`${fileName} selected locally. Not uploaded.`:"No file selected.")}</p>
     </div>
-    <button className="button" type="submit">Prepare enquiry draft ↗</button>
-    <p className="form-note">Preview only. This form does not submit an enquiry or create an order. Pricing and feasibility require manual review.</p>
+    <button className="button" type="submit" disabled={sending}>{sending?"Sending…":"Send enquiry ↗"}</button>
+    <p className="form-note">Enquiries are sent to our business email. Design files are not uploaded or attached. Pricing and feasibility require manual review.</p>
     <p role="status" aria-live="polite">{message}</p>
-    {draft&&<div className="draft-panel">
+    {draft&&!sent&&<div className="draft-panel">
       <label>Your enquiry draft<textarea readOnly rows={10} value={draft}/></label>
       <div className="button-row">
         <button className="button button-secondary" type="button" onClick={async()=>{
