@@ -18,21 +18,32 @@ test("mobile menu supports touch navigation",async({page})=>{
   await expect(menu).toHaveAttribute("aria-expanded","false");await expect(page).toHaveURL(/#materials$/);
  }
 });
-test("draft and file selection stay local and never imply an upload",async({page})=>{
- await page.goto("/");await page.getByLabel("Your name",{exact:true}).fill("Preview user");
- await page.getByLabel("Email or phone").fill("preview@example.invalid");
+test("enquiry sends customer details",async({page})=>{
+ await page.goto("/");
+ await page.route("**/api/enquiry",async route=>{
+  const body=route.request().postDataJSON();
+  expect(body.name).toBe("Preview user");
+  expect(body.email).toBe("preview@example.invalid");
+  expect(body.quantity).toBe("1");
+  expect(body.details).toContain("concept enclosure");
+  await route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({ok:true})});
+ });
+ await page.getByLabel("Your name",{exact:true}).fill("Preview user");
+ await page.getByLabel("Your email").fill("preview@example.invalid");
  await page.getByLabel("Tell us about your idea").fill("A concept enclosure for design review.");
- const fileInput=page.getByLabel("Select a design file for local validation");
- await fileInput.setInputFiles({name:"unsupported.txt",mimeType:"text/plain",buffer:Buffer.from("preview")});
- await expect(page.locator("#file-result")).toContainText("Choose an STL");
- await page.getByRole("button",{name:"Prepare enquiry draft"}).click();await expect(page.getByLabel("Your enquiry draft")).toHaveCount(0);
- await fileInput.setInputFiles({name:"concept.stl",mimeType:"application/octet-stream",buffer:Buffer.from("solid preview\nendsolid preview")});
- const writes:string[]=[];page.on("request",request=>{if(["POST","PUT","PATCH","DELETE"].includes(request.method()))writes.push(request.url());});
- await page.getByRole("button",{name:"Prepare enquiry draft"}).click();
+ await page.getByRole("button",{name:"Send enquiry"}).click();
+ await expect(page.getByText("Enquiry sent successfully. We will reply by email.")).toBeVisible();
+ await expect(page.getByText("File uploads are not available yet.",{exact:false})).toBeVisible();
+});
+test("enquiry delivery failure provides manual email fallback",async({page})=>{
+ await page.goto("/");
+ await page.route("**/api/enquiry",route=>route.fulfill({status:502,contentType:"application/json",body:JSON.stringify({error:"Unavailable"})}));
+ await page.getByLabel("Your name",{exact:true}).fill("Preview user");
+ await page.getByLabel("Your email").fill("preview@example.invalid");
+ await page.getByLabel("Tell us about your idea").fill("A concept enclosure for design review.");
+ await page.getByRole("button",{name:"Send enquiry"}).click();
  await expect(page.getByLabel("Your enquiry draft")).toHaveValue(/Preview user/);
- await expect(page.getByText("Draft prepared on this device. Nothing has been sent.")).toBeVisible();
- await expect(page.locator("#file-result")).toContainText("Not uploaded");expect(writes).toEqual([]);
- await page.getByLabel("Your name",{exact:true}).fill("Changed name");await expect(page.getByLabel("Your enquiry draft")).toHaveCount(0);
+ await expect(page.getByRole("link",{name:"Open email app"})).toHaveAttribute("href","mailto:takweenlabs.in@gmail.com");
 });
 test("operations and tracking remain honest placeholders",async({page})=>{
  await page.goto("/admin");await expect(page.getByText(/Authentication and operational data are not implemented/)).toBeVisible();

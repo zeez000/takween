@@ -53,6 +53,18 @@ test("real WebGL assembly reverses scroll, frames parts and supports drag/reset"
  expect(errors).toEqual([]);
 });
 
+test("3D controls fit a short landscape viewport",async({page},info)=>{
+ test.skip(info.project.name!=="desktop","Interactive landscape uses Chromium WebGL.");
+ await page.setViewportSize({width:844,height:390});
+ await page.goto("/#assembly");
+ await expect(page.getByTestId("assembly-view")).toHaveAttribute("data-ready","true",{timeout:45000});
+ await progress(page,.1);
+ const reset=page.getByRole("button",{name:"Reset view",exact:true});
+ await expect(reset).toBeInViewport({ratio:1});
+ await reset.click();
+ await page.screenshot({path:info.outputPath("landscape-assembly.png"),animations:"disabled"});
+});
+
 test("reduced motion stays static with no WebGL scene and quote remains available",async({page})=>{
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/#assembly");
  await expect(page.getByText("Reduced motion: static illustration.",{exact:false})).toBeVisible();
@@ -88,9 +100,12 @@ test("touch surface reserves vertical scrolling and scene does not overflow",asy
  await page.goto("/#assembly");
  await expect(page.locator(".assembly-viewport")).toHaveCSS("touch-action","pan-y");
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ // The initial anchor position depends on when fonts and the header settle.
+ await expect.poll(()=>page.locator("#assembly").evaluate(section=>section.getBoundingClientRect().top-innerHeight/2)).toBeLessThan(0);
+ const before=await page.evaluate(()=>scrollY);
  if(info.project.name==="iphone")await page.evaluate(()=>window.scrollBy({top:450,behavior:"instant"}));
  else await page.mouse.wheel(0,450);
- await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(700);
+ await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(before+200);
  if(info.project.name==="iphone")await page.screenshot({path:info.outputPath("mobile-story.png"),animations:"disabled"});
 });
 

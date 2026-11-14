@@ -3,3 +3,25 @@ body{font-family:"Inter",Arial,sans-serif}h1,h2,h3,.wordmark strong,.entry-title
 @media(max-width:760px){.assembly-chapter{--header-height:75px;height:370svh;scroll-margin-top:75px}.assembly-stage{min-height:690px}.assembly-editorial{top:5%;left:6%}.assembly-editorial h2{font-size:2.7rem;line-height:.95}.assembly-editorial .eyebrow{font-size:.5rem;letter-spacing:.1em}.assembly-subtitle{display:none}.assembly-skip{top:5%;right:5%;font-size:.55rem}.assembly-viewport{inset:15% -8% 23%}.assembly-story{right:6%;left:6%;bottom:22%;width:auto}.assembly-story h3{font-size:1rem;margin:7px 0}.assembly-story p{font-size:.65rem;max-width:290px}.assembly-story span{font-size:.5rem}.assembly-bottom{bottom:7%;gap:10px;left:6%;right:6%}.assembly-bottom>p{font-size:.52rem;max-width:none}.assembly-controls{gap:4px;justify-content:flex-start}.assembly-controls button{min-height:44px;min-width:34px;padding:7px 9px;font-size:.56rem}.assembly-disclaimer{font-size:.42rem;bottom:2.7%}.tech-callout{font-size:8px;padding:6px;max-width:110px;white-space:normal}.tech-callout span{font-size:7px}.assembly-static{height:auto}.assembly-static .assembly-stage{min-height:820px}.assembly-fallback{width:75%;margin-top:20px}.assembly-fallback .part-scene{min-height:330px}.assembly-static .assembly-viewport{inset:25% 0 14%}.entry-skip{top:20px;right:20px}.entry-location{left:24px;font-size:.5rem}}
 @media(prefers-reduced-motion:reduce){.assembly-chapter{height:auto}.assembly-stage{position:relative}.assembly-scan,.entry-trace{display:none}.assembly-story>div{animation:none}.entry-screen{scroll-behavior:auto}}
 .assembly-labels{position:absolute;inset:0;pointer-events:none;z-index:4}.assembly-labels .tech-callout{position:absolute;transform:translate(-50%,-50%);width:max-content;}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-entered { animation: section-reveal .65s cubic-bezier(0, 0, .58, 1); }
+}
+@keyframes section-reveal {
+  from { opacity: .65; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Keep the sticky chapter and its controls inside short landscape viewports. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1024px) {
+  .assembly-chapter:not(.assembly-static) .assembly-stage { min-height: 0; }
+  .assembly-chapter:not(.assembly-static) .assembly-editorial h2 { font-size: 2rem; margin-bottom: 8px; }
+  .assembly-chapter:not(.assembly-static) .assembly-subtitle { display: none; }
+  .assembly-chapter:not(.assembly-static) .assembly-viewport { inset: 8% 18% 24%; }
+  .assembly-chapter:not(.assembly-static) .assembly-story { left: auto; width: 140px; bottom: 28%; }
+  .assembly-chapter:not(.assembly-static) .assembly-bottom { bottom: 8%; gap: 6px; }
+  .entry-content { padding-block: 48px; }
+  .entry-title { font-size: clamp(2.7rem, 8svh, 4rem); margin-bottom: 12px; }
+  .entry-content .button { margin-top: 8px; }
+  .entry-content small { margin-top: 10px; }
+}
