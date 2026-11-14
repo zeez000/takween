@@ -24,12 +24,14 @@ export async function POST(request:Request) {
   }
   if (!body || typeof body!=="object" || Array.isArray(body))
     return NextResponse.json({error:"Invalid request."},{status:400});
-  if (body.website) return NextResponse.json({ok:true});
+  // A filled honeypot or implausibly fast submission is discarded without sending email.
+  if (body.website || typeof body.elapsedMs!=="number" || !Number.isFinite(body.elapsedMs) || body.elapsedMs<1500)
+    return NextResponse.json({ok:true});
   const name = typeof body.name==="string"?body.name.trim():"";
   const email = typeof body.email==="string"?body.email.trim():"";
   const details = typeof body.details==="string"?body.details.trim():"";
   const material = body.material;
-  const quantity = Number(body.quantity);
+  const quantity = typeof body.quantity==="string" && /^\\d+$/.test(body.quantity) ? Number(body.quantity) : NaN;
   if (!name || name.length>100 || !emailPattern.test(email) || email.length>150 ||
       !details || details.length<10 || details.length>3000 ||
       !["Please advise","PLA","PETG"].includes(String(material)) ||
