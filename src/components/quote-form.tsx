@@ -1,9 +1,10 @@
 "use client";
-import {useRef,useState,type FormEvent} from "react";
+import {useEffect,useRef,useState,type FormEvent} from "react";
 import {site} from "@/config/site";
 import {formatEnquiry} from "@/lib/enquiry";
 export function QuoteForm() {
-  const startedAt=useRef(Date.now());
+  const startedAt=useRef(0);
+  useEffect(()=>{startedAt.current=Date.now();},[]);
   const [draft,setDraft]=useState("");
   const [message,setMessage]=useState("");
   const [sending,setSending]=useState(false);
