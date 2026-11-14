@@ -18,7 +18,7 @@ test("mobile menu supports touch navigation",async({page})=>{
   await expect(menu).toHaveAttribute("aria-expanded","false");await expect(page).toHaveURL(/#materials$/);
  }
 });
-test("enquiry validates files and sends customer details",async({page})=>{
+test("enquiry sends customer details",async({page})=>{
  await page.goto("/");
  await page.route("**/api/enquiry",async route=>{
   const body=route.request().postDataJSON();
@@ -31,15 +31,9 @@ test("enquiry validates files and sends customer details",async({page})=>{
  await page.getByLabel("Your name",{exact:true}).fill("Preview user");
  await page.getByLabel("Your email").fill("preview@example.invalid");
  await page.getByLabel("Tell us about your idea").fill("A concept enclosure for design review.");
- const fileInput=page.getByLabel("Select a design file for local validation");
- await fileInput.setInputFiles({name:"unsupported.txt",mimeType:"text/plain",buffer:Buffer.from("preview")});
- await expect(page.locator("#file-result")).toContainText("Choose an STL");
- await page.getByRole("button",{name:"Send enquiry"}).click();
- await expect(page.getByText("Remove or replace the unsupported file before sending.")).toBeVisible();
- await fileInput.setInputFiles({name:"concept.stl",mimeType:"application/octet-stream",buffer:Buffer.from("solid preview\\nendsolid preview")});
  await page.getByRole("button",{name:"Send enquiry"}).click();
  await expect(page.getByText("Enquiry sent successfully. We will reply by email.")).toBeVisible();
- await expect(page.locator("#file-result")).toContainText("No file selected.");
+ await expect(page.getByText("File uploads are not available yet.",{exact:false})).toBeVisible();
 });
 test("enquiry delivery failure provides manual email fallback",async({page})=>{
  await page.goto("/");
