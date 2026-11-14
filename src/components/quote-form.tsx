@@ -1,14 +1,16 @@
 "use client";
-import {useState,type FormEvent} from "react";
+import {useRef,useState,type FormEvent} from "react";
 import {site} from "@/config/site";
 import {formatEnquiry} from "@/lib/enquiry";
 export function QuoteForm() {
+  const startedAt=useRef(Date.now());
   const [draft,setDraft]=useState("");
   const [message,setMessage]=useState("");
   const [sending,setSending]=useState(false);
   const [sent,setSent]=useState(false);
   async function prepare(event:FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setMessage(""); setDraft(""); setSent(false);
+    event.preventDefault();
+    if(sending)return; setMessage(""); setDraft(""); setSent(false);
     // Unnamed controls keep draft values out of native submissions before hydration.
     const form=event.currentTarget;
     const controls=form.elements;
@@ -19,11 +21,11 @@ export function QuoteForm() {
     };
     setSending(true);
     try {
-      const response = await fetch("/api/enquiry",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,email:values.contact,website:""})});
+      const response = await fetch("/api/enquiry",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...values,email:values.contact,website:value("website"),elapsedMs:Date.now()-startedAt.current})});
       if (!response.ok) throw new Error("Delivery failed");
       setSent(true);
       setMessage("Enquiry sent successfully. We will reply by email.");
-      form.reset();
+      form.reset(); startedAt.current=Date.now();
     } catch {
       setDraft(formatEnquiry(values));
       setMessage("We could not send your enquiry. Copy the draft below and email it to us.");
@@ -38,6 +40,7 @@ export function QuoteForm() {
     </div>
     <label>Tell us about your idea<textarea id="draft-details" rows={4} required minLength={10} maxLength={3000} placeholder="Purpose, approximate dimensions, intended use and any deadline."/></label>
     <div className="file-area"><p><strong>Have a 3D design file?</strong> File uploads are not available yet. After sending your enquiry, reply to our email or contact us directly at {site.enquiryEmail} to share your STL, 3MF or STEP file.</p></div>
+    <div className="enquiry-trap" aria-hidden="true"><label>Leave this field empty<input id="website" tabIndex={-1} autoComplete="off"/></label></div>
     <button className="button" type="submit" disabled={sending}>{sending?"Sending…":"Send enquiry ↗"}</button>
     <p className="form-note">Enquiries are sent to our business email. Design files are not uploaded or attached. Pricing and feasibility require manual review.</p>
     <p role="status" aria-live="polite">{message}</p>
@@ -50,7 +53,7 @@ export function QuoteForm() {
         }}>Copy draft</button>
         <a className="button" href={`mailto:${site.enquiryEmail}`}>Open email app ↗</a>
       </div>
-      <p className="form-note">Paste your draft into your email app and send it when ready. Your selected file stays on this device.</p>
+      <p className="form-note">Paste your draft into your email app and send it when ready.</p>
     </div>}
   </form>;
 }
