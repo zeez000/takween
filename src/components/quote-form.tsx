@@ -11,9 +11,10 @@ export function QuoteForm() {
   const [sent,setSent]=useState(false);
   async function prepare(event:FormEvent<HTMLFormElement>) {
     event.preventDefault(); setMessage(""); setDraft(""); setSent(false);
-    if(fileError){setMessage("Remove or replace the unsupported file before preparing a draft.");return;}
+    if(fileError){setMessage("Remove or replace the unsupported file before sending.");return;}
     // Unnamed controls keep draft values out of native submissions before hydration.
-    const controls=event.currentTarget.elements;
+    const form=event.currentTarget;
+    const controls=form.elements;
     const value=(id:string)=>(controls.namedItem(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
     const values = {
       name:value("draft-name"),contact:value("draft-email"),material:value("draft-material"),
@@ -25,7 +26,7 @@ export function QuoteForm() {
       if (!response.ok) throw new Error("Delivery failed");
       setSent(true);
       setMessage("Enquiry sent successfully. We will reply by email.");
-      event.currentTarget.reset(); setFileName("");
+      form.reset(); setFileName("");
     } catch {
       setDraft(formatEnquiry(values));
       setMessage("We could not send your enquiry. Copy the draft below and email it to us.");
