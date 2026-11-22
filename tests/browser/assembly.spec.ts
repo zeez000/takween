@@ -99,14 +99,26 @@ test("entry is skippable, remembered and bypassed by direct links",async({page})
 });
 
 test("touch surface reserves vertical scrolling and scene does not overflow",async({page},info)=>{
- await page.goto("/#assembly");
+ await page.goto("/");
+ // Finish font/layout work, then place the story without an in-flight smooth
+ // hash navigation competing with the wheel gesture on slower CI runners.
+ await page.evaluate(async()=>{
+  await document.fonts.ready;
+  const section=document.querySelector("#assembly")!;
+  const header=document.querySelector(".header")!.getBoundingClientRect().height;
+  window.scrollTo({top:scrollY+section.getBoundingClientRect().top-header,behavior:"instant"});
+ });
  await expect(page.locator(".assembly-viewport")).toHaveCSS("touch-action","pan-y");
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- // The initial anchor position depends on when fonts and the header settle.
  await expect.poll(()=>page.locator("#assembly").evaluate(section=>section.getBoundingClientRect().top-innerHeight/2)).toBeLessThan(0);
+ if(info.project.name==="desktop")await expect(page.getByTestId("assembly-view")).toHaveAttribute("data-ready","true",{timeout:45000});
  const before=await page.evaluate(()=>scrollY);
  if(info.project.name==="iphone")await page.evaluate(()=>window.scrollBy({top:450,behavior:"instant"}));
- else await page.mouse.wheel(0,450);
+ else {
+  const box=(await page.locator(".assembly-viewport").boundingBox())!;
+  await page.mouse.move(box.x+box.width/2,Math.min(box.y+box.height/2,700));
+  await page.mouse.wheel(0,450);
+ }
  await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(before+200);
  if(info.project.name==="iphone")await page.screenshot({path:info.outputPath("mobile-story.png"),animations:"disabled"});
 });

@@ -38,3 +38,13 @@ Raw failure trace, decoded action timings and uploaded images are retained under
 - Diff contains only this investigation note and the test split. Application/design files, screenshot thresholds, keyboard counts, retries and test timeout are unchanged.
 
 The remote result is to be verified on the new commit's GitHub Actions run and reported with its run URL. The older failed run is historical and is not re-labelled as passing.
+
+## Hosted follow-up and second race
+
+Commit ded0223 passed the complete PR workflow in run [45011697457](https://github.com/zeez000/takween/actions/runs/45011697457). The simultaneous push run 45011693059 passed both hero tests (16.9s visual interaction/reset, 22.4s keyboard boundaries), but exposed an independent assembly scroll-test race.
+
+Its uploaded trace (artifact 14749709601) records initial hash navigation still advancing: scrollY 593 before the wheel, 601 immediately afterwards, then 621 through the failed polling window. The test had accepted an intermediate anchor position as its starting point. It did not establish a settled scene before issuing a native wheel gesture.
+
+The assembly test now loads the page without a competing hash navigation, waits for document fonts, positions the story with an explicit instant scroll, waits for the desktop renderer to be ready, and moves the pointer over the story before issuing the same native wheel input. The >200px scroll assertion and pan-y/overflow assertions remain unchanged. No application scroll handler, animation, geometry, lighting, timeout, retry or screenshot threshold changed.
+
+Five repetitions of each affected case passed locally: 15/15 (hero visible drag/reset, keyboard bounds, story wheel). The expanded production browser suite passed 43 tests with 9 existing platform-specific skips; the same result passed against freshly built local workerd. Added customer tests cover quantity boundaries, invalid values, duplicate submission, slow mocked transport, failed network and idempotent recovery. A real 10-second abort deadline is exercised by the mocked provider unit test. See COMPLETE_QA_RELEASE.md for the full evidence and remaining launch gates.
