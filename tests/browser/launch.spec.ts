@@ -65,7 +65,7 @@ test("internal links, images and browser diagnostics",async({page,request})=>{
 test("exact launch viewport matrix and keyboard navigation",async({page},info)=>{
   test.skip(info.project.name!=="desktop","Exact viewport matrix uses Chromium; iPhone WebKit has separate coverage.");
   await page.emulateMedia({reducedMotion:"reduce"});
-  for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[768,1024],[1024,768],[360,800],[390,844],[430,932],[844,390]]){
+  for(const [width,height] of [[1920,1080],[1440,900],[1366,768],[1280,720],[768,1024],[1024,768],[360,800],[375,667],[390,844],[430,932],[844,390]]){
     await page.setViewportSize({width,height});await page.goto("/");
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}x${height}`).toBe(true);
     await page.keyboard.press("Tab");await expect(page.getByRole("link",{name:"Skip to content"})).toBeFocused();

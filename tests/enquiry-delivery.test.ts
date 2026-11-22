@@ -12,3 +12,20 @@ test('wrong origin and unsupported body types rejected',async()=>{const r=reques
 test('actual streamed bytes capped with absent or false content-length',async()=>{for(const length of [null,'1']){const r=request({...valid,details:'x'.repeat(17000)});if(length)r.headers.set('content-length',length);assert.equal((await handleEnquiry(r,env(),provider())).status,413)}});
 test('site limiter failure cannot reach provider',async()=>{const e=env();e.ENQUIRY_SITE_LIMITER={limit:async()=>({success:false})};let calls=0;assert.equal((await handleEnquiry(request(valid),e,async()=>{calls++;return provider()()})).status,429);assert.equal(calls,0)});
 test('invalid JSON, non-JSON, extra fields and missing IP are rejected',async()=>{const malformed=new Request('https://site.invalid/api/enquiry',{method:'POST',headers:{origin:'https://site.invalid','content-type':'application/json','cf-connecting-ip':'192.0.2.1'},body:'{'});assert.equal((await handleEnquiry(malformed,env(),provider())).status,400);const text=request(valid);text.headers.set('content-type','text/plain');assert.equal((await handleEnquiry(text,env(),provider())).status,415);const missing=request(valid);missing.headers.delete('cf-connecting-ip');assert.equal((await handleEnquiry(missing,env(),provider())).status,503)});
+
+test('provider timeout fails without acceptance or leaking credentials',async()=>{
+ let timedOut=false;
+ const response=await handleEnquiry(request(valid),env(),async(_input,init)=>{
+  assert.ok(init?.signal);
+  // Keep the event loop alive while the real configured abort deadline expires.
+  await new Promise<void>((resolve,reject)=>{
+   const guard=setTimeout(resolve,12000);
+   init.signal!.addEventListener('abort',()=>{timedOut=init.signal!.reason?.name==='TimeoutError';clearTimeout(guard);reject(init.signal!.reason);},{once:true});
+  });
+  throw Error('Provider exceeded its deadline');
+ });
+ assert.equal(timedOut,true);
+ assert.equal(response.status,502);
+ assert.equal(response.headers.get('cache-control'),'no-store');
+ assert.equal((await response.text()).includes('dummy'),false);
+});
