@@ -65,7 +65,7 @@ export async function handleEnquiry(request: Request, env: EnquiryEnvironment, s
     });
     if (!result.ok) return reply(502, "Email service did not accept your enquiry. Please retry or email us directly.");
     const accepted = await result.json();
-    if (typeof accepted?.id !== "string" || !accepted.id) return reply(502, "We could not confirm acceptance. Please retry or email us directly.");
+    if (typeof accepted?.id !== "string" || !accepted.id.trim()) return reply(502, "We could not confirm acceptance. Please retry or email us directly.");
     return Response.json({status:"accepted",id:accepted.id}, {status:202,headers:{"Cache-Control":"no-store"}});
   } catch { return reply(502, "We could not confirm acceptance. Please retry or email us directly."); }
 }

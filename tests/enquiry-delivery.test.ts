@@ -7,6 +7,10 @@ for(const quantity of ['1','10','10000'])test(`valid quantity ${quantity} accept
 for(const quantity of ['0','-1','1.5','1e3','10001','\\d','NaN',''])test(`invalid quantity ${quantity}`,async()=>{assert.equal((await handleEnquiry(request({...valid,quantity}),env(),provider())).status,400)});
 test('spam is rejected, never fake accepted',async()=>{assert.equal((await handleEnquiry(request({...valid,website:'spam'}),env(),provider())).status,422)});
 test('provider rejection/malformed success/network failure cannot report accepted',async()=>{for(const send of [provider(429),provider(200,{}),async()=>{throw Error('offline')}])assert.equal((await handleEnquiry(request(valid),env(),send)).status,502)});
+
+test('whitespace-only provider IDs are malformed, never accepted',async()=>{
+ assert.equal((await handleEnquiry(request(valid),env(),provider(200,{id:'   '}))).status,502);
+});
 test('rate limits and unavailable configuration fail closed',async()=>{const e=env();e.ENQUIRY_IP_LIMITER={limit:async()=>({success:false})};const limited=await handleEnquiry(request(valid),e,provider());assert.equal(limited.status,429);assert.equal(limited.headers.get('retry-after'),'60');delete e.ENQUIRY_IP_LIMITER;assert.equal((await handleEnquiry(request(valid),e,provider())).status,503);assert.equal((await handleEnquiry(request(valid),{...env(),ENQUIRY_ENABLED:'false'},provider())).status,503)});
 test('wrong origin and unsupported body types rejected',async()=>{const r=request(valid);r.headers.set('origin','https://other.invalid');assert.equal((await handleEnquiry(r,env(),provider())).status,403);assert.equal((await handleEnquiry(request({...valid,fileData:'data'}),env(),provider())).status,400)});
 test('actual streamed bytes capped with absent or false content-length',async()=>{for(const length of [null,'1']){const r=request({...valid,details:'x'.repeat(17000)});if(length)r.headers.set('content-length',length);assert.equal((await handleEnquiry(r,env(),provider())).status,413)}});
