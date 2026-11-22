@@ -30,12 +30,11 @@ test.beforeEach(async ({page}) => {
   await page.addInitScript(() => sessionStorage.setItem("takween-entry-seen", "1"));
 });
 
-test("direct hero entry defers lower WebGL until the assembly stage is in view", async ({page}, info) => {
+test("original gear loading coexists with the T and remains ready on entering its stage", async ({page}, info) => {
   test.skip(info.project.name !== "desktop", "Active WebGL loading is checked in Chromium.");
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto("/#hero-title");
   await expect(page.getByTestId("hero-emblem-view")).toHaveAttribute("data-ready", "true", {timeout: 45000});
-  await expect(page.locator(".assembly-viewport canvas")).toHaveCount(0);
   await page.locator(".assembly-stage").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("assembly-view")).toHaveAttribute("data-ready", "true", {timeout: 45000});
 });

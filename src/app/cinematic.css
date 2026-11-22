@@ -17,7 +17,6 @@ body{font-family:"Inter",Arial,sans-serif}h1,h2,h3,.wordmark strong,.entry-title
   .assembly-chapter:not(.assembly-static) .assembly-stage { min-height: 0; }
   .assembly-chapter:not(.assembly-static) .assembly-editorial h2 { font-size: 2rem; margin-bottom: 8px; }
   .assembly-chapter:not(.assembly-static) .assembly-subtitle { display: none; }
-  .assembly-chapter:not(.assembly-static) .assembly-viewport { inset: 8% 18% 24%; }
   .assembly-chapter:not(.assembly-static) .assembly-story { left: auto; width: 140px; bottom: 28%; }
   .assembly-chapter:not(.assembly-static) .assembly-bottom { bottom: 8%; gap: 6px; }
   .entry-content { padding-block: 48px; }

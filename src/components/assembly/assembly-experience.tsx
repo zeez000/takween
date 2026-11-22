@@ -64,7 +64,7 @@ export function AssemblyExperience() {
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     const observer = new IntersectionObserver(entries => {
-      if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= .5) || fallback || document.querySelector(".entry-screen[open]")) return;
+      if (!entries.some(entry => entry.isIntersecting) || fallback || document.querySelector(".entry-screen[open]")) return;
       // Probe before mounting Three so unsupported WebGL produces a quiet fallback.
       const probe = document.createElement("canvas");
       try {
@@ -74,11 +74,9 @@ export function AssemblyExperience() {
         setLoaded(true);
       } catch { setFailed(true); }
       observer.disconnect();
-    }, {threshold: .5});
-    // Compile the lower scene when its stage is meaningfully visible, rather than
-    // when a sliver of the multi-screen chapter appears beneath the hero.
-    observer.observe(sticky);
-    const entered = () => { observer.unobserve(sticky); observer.observe(sticky); };
+    }, {rootMargin: "180px"});
+    observer.observe(section);
+    const entered = () => { observer.unobserve(section); observer.observe(section); };
     window.addEventListener("takween:entered", entered);
     const resize = new ResizeObserver(schedule);
     resize.observe(section);

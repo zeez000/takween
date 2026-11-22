@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-22",
+  "entry": "http://127.0.0.1:8795/#hero-title",
+  "lighthouseVersion": "13.6.0",
+  "performance": 39,
+  "LCP": "13.3 s",
+  "TBT": "12,490 ms",
+  "CLS": "0.012",
+  "warnings": [
+    "The tested device appears to have a slower CPU than  Lighthouse expects. This can negatively affect your performance score. Learn more about [calibrating an appropriate CPU slowdown multiplier](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)."
+  ],
+  "mainThread": [
+    {
+      "group": "scriptEvaluation",
+      "groupLabel": "Script Evaluation",
+      "duration": 16125.58800000009
+    },
+    {
+      "group": "styleLayout",
+      "groupLabel": "Style & Layout",
+      "duration": 1883.4040000000002
+    },
+    {
+      "group": "other",
+      "groupLabel": "Other",
+      "duration": 1017.5039999999946
+    },
+    {
+      "group": "scriptParseCompile",
+      "groupLabel": "Script Parsing & Compilation",
+      "duration": 427.08400000000006
+    },
+    {
+      "group": "paintCompositeRender",
+      "groupLabel": "Rendering",
+      "duration": 132.0480000000004
+    },
+    {
+      "group": "garbageCollection",
+      "groupLabel": "Garbage Collection",
+      "duration": 67.51600000000005
+    },
+    {
+      "group": "parseHTML",
+      "groupLabel": "Parse HTML & CSS",
+      "duration": 27.119999999999997
+    }
+  ],
+  "topScripts": [
+    {
+      "url": "http://127.0.0.1:8795/_next/static/chunks/39v9n1qzkb2ux.js",
+      "total": 7006.815999999997,
+      "scripting": 6559.131999999998,
+      "scriptParseCompile": 240.86
+    },
+    {
+      "url": "http://127.0.0.1:8795/_next/static/chunks/20u_0k14jpr_o.js",
+      "total": 5920.199999999998,
+      "scripting": 5836.151999999999,
+      "scriptParseCompile": 11.164000000000001
+    },
+    {
+      "url": "http://127.0.0.1:8795/_next/static/chunks/23e6jep2anmtk.js",
+      "total": 3798.531999999983,
+      "scripting": 3426.855999999983,
+      "scriptParseCompile": 62.596
+    }
+  ]
+}

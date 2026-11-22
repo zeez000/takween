@@ -59,6 +59,8 @@ test("3D controls fit a short landscape viewport",async({page},info)=>{
  await page.goto("/#assembly");
  await expect(page.getByTestId("assembly-view")).toHaveAttribute("data-ready","true",{timeout:45000});
  await progress(page,.1);
+ const controls=page.locator('.assembly-controls button');
+ for(const button of await controls.all())await expect(button).toBeInViewport({ratio:1});
  const reset=page.getByRole("button",{name:"Reset view",exact:true});
  await expect(reset).toBeInViewport({ratio:1});
  await reset.click();
