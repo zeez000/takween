@@ -83,11 +83,23 @@ test("hero emblem supports mouse drag, keyboard rotation and reset", async ({pag
   expect(resetDifference.meanDelta).toBeLessThan(.5);
   await page.getByRole("button", {name: "Rotate emblem right"}).press("Enter");
   await expect(view).toHaveAttribute("data-yaw", "0.200");
+  await compositor.detach();
+});
+
+test("hero emblem keyboard rotation respects both yaw limits", async ({page}, info) => {
+  test.skip(info.project.name !== "desktop", "Interactive WebGL is tested with Chromium.");
+  await page.setViewportSize({width: 1440, height: 900});
+  await page.goto("/");
+  const view = page.getByTestId("hero-emblem-view");
+  await expect(view).toHaveAttribute("data-ready", "true", {timeout: 45000});
+  await page.getByRole("button", {name: "Reset emblem"}).press("Enter");
+  await expect(view).toHaveAttribute("data-yaw", "0.000");
+  await page.getByRole("button", {name: "Rotate emblem right"}).press("Enter");
+  await expect(view).toHaveAttribute("data-yaw", "0.200");
   for (let index = 0; index < 8; index++) await page.getByRole("button", {name: "Rotate emblem right"}).press("Enter");
   await expect(view).toHaveAttribute("data-yaw", "0.600");
   for (let index = 0; index < 12; index++) await page.getByRole("button", {name: "Rotate emblem left"}).press("Enter");
   await expect(view).toHaveAttribute("data-yaw", "-0.600");
-  await compositor.detach();
 });
 
 test("hero emblem accepts horizontal touch drag and yields to vertical swipes", async ({page, context}, info) => {
