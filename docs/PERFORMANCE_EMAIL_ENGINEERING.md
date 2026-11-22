@@ -66,6 +66,8 @@ Forced-GC JS heap observations: original 7,809,980 → 9,859,284 bytes; candidat
 
 Direct original-versus-final comparisons at 1440×900, 390×844 and 844×390 produced **changedRatio=0 and meanDelta=0** for both the neutral T and paused/reset gear: six exact comparisons. No tolerances were relaxed. Comparison screenshots and JSON are in performance-evidence/. Existing drag/reset pixel assertions remain in the suite.
 
+The initial review crops used viewport coordinates after scrolling and truncated part of the captured mobile logo. This was a capture error, not website clipping. They were replaced by complete element screenshots of the framed emblem/stage from the original build and final Worker. Only CSS animations are frozen during those review captures; the models are reset/paused explicitly. All six complete-frame comparisons again returned zero difference. The product geometry and animation code were not changed to correct the screenshots.
+
 | Actual renderer capture | Original | Candidate |
 |---|---|---|
 | Desktop T | ![Original T](performance-evidence/desktop-before-hero-crop.png) | ![Candidate T](performance-evidence/desktop-after-hero-crop.png) |
@@ -139,3 +141,5 @@ The additional navigation/back regression was added after the full local Worker 
 One accessibility helper initially targeted the stopped localhost:3110 server and failed connection-refused. It was corrected to the running final Worker at :8795 and all nine combinations passed. The isolated baseline also initially needed a workspace-local dependency junction/Turbopack resolution root; that setup failure was not counted as an application build pass. Red-phase pending-field, whitespace-ID and missing-file-clear failures were reproduced before fixing them.
 
 Local verification supports **conditional GO for an owner-reviewed foundation preview update**, retaining disabled sending/indexing and acknowledging software-GPU performance/physical-device limitations. It is **NO-GO for the commercial .com launch**. The final remote CI conclusion must be read from the pushed commit's Actions runs; local results do not substitute for it. No publication is performed by this recommendation.
+
+Application-source commit 5ac43383f3b3c7738a26fa8844e97fd91a2a7e18 passed both hosted workflows: [push run](https://github.com/zeez000/takween/actions/runs/45056789553) and [PR run](https://github.com/zeez000/takween/actions/runs/45056987916). Hosted logs confirm 29 unit passes and 51 browser passes with 13 project-specific skips. The complete-frame screenshot correction is a documentation-only follow-up; its final CI result is reported in PR #4 and the completion report.
