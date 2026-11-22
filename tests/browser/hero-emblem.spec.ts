@@ -145,6 +145,110 @@ test("hero shows the traced fallback without WebGL", async ({page}) => {
   await expect(page.locator(".hero canvas")).toHaveCount(0);
 });
 
+test("hero retains its renderer and pose while paused offscreen or backgrounded",async({page},info)=>{
+ test.skip(info.project.name!=="desktop","Renderer lifecycle is exercised in Chromium.");
+ await page.goto('/#hero-title');
+ const view=page.getByTestId('hero-emblem-view');
+ await expect(view).toHaveAttribute('data-ready','true',{timeout:45000});
+ const canvas=await page.locator('.hero canvas').elementHandle();
+ await canvas!.evaluate(node=>{
+  const gl=(node as HTMLCanvasElement).getContext('webgl2')!;
+  const draw=gl.drawArrays.bind(gl);Reflect.set(window,'heroDraws',0);
+  gl.drawArrays=(mode,first,count)=>{Reflect.set(window,'heroDraws',Reflect.get(window,'heroDraws')+1);draw(mode,first,count);};
+ });
+ await expect.poll(()=>page.evaluate(()=>Reflect.get(window,'heroDraws'))).toBeGreaterThan(0);
+ await page.locator('#quote').scrollIntoViewIfNeeded();
+ await expect(view).toHaveAttribute('data-ready','false');
+ await page.waitForTimeout(200);
+ const idlePaused=await page.evaluate(()=>Reflect.get(window,'heroDraws'));
+ await page.waitForTimeout(200);
+ expect(await page.evaluate(()=>Reflect.get(window,'heroDraws'))).toBe(idlePaused);
+ await view.scrollIntoViewIfNeeded();
+ await expect(view).toHaveAttribute('data-ready','true');
+ await page.getByRole('button',{name:'Reset emblem',exact:true}).click();
+ await page.getByRole('button',{name:'Rotate emblem right',exact:true}).click();
+ for(let index=0;index<3;index++){
+  await page.locator('#quote').scrollIntoViewIfNeeded();
+  await expect(view).toHaveAttribute('data-ready','false');
+  expect(await canvas!.evaluate(node=>node.isConnected)).toBe(true);
+  await page.waitForTimeout(200);
+  const paused=await page.evaluate(()=>Reflect.get(window,'heroDraws'));
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(()=>Reflect.get(window,'heroDraws'))).toBe(paused);
+  await view.scrollIntoViewIfNeeded();
+  await expect(view).toHaveAttribute('data-ready','true');
+  await expect(view).toHaveAttribute('data-yaw','0.200');
+ }
+ // Synthetic visibility events exercise cleanup without claiming a physical
+ // browser/OS background test on this headless runner.
+ await page.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,value:true});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ await expect(view).toHaveAttribute('data-ready','false');
+ await page.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,value:false});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ await expect(view).toHaveAttribute('data-ready','true');
+ expect(await canvas!.evaluate(node=>node.isConnected)).toBe(true);
+ await expect(view).toHaveAttribute('data-yaw','0.200');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await expect(page.locator('.hero canvas')).toHaveCount(0);
+ await expect(page.getByRole('img',{name:'Red layered T monogram'})).toBeVisible();
+});
+
+test("hero context loss shows its static logo without blocking the enquiry",async({page},info)=>{
+ test.skip(info.project.name!=="desktop","Context loss is injected in Chromium.");
+ await page.goto('/#hero-title');
+ await expect(page.getByTestId('hero-emblem-view')).toHaveAttribute('data-ready','true',{timeout:45000});
+ await page.locator('.hero canvas').evaluate(canvas=>{
+  (canvas as HTMLCanvasElement).getContext('webgl2')!.getExtension('WEBGL_lose_context')!.loseContext();
+ });
+ await expect(page.locator('.hero canvas')).toHaveCount(0);
+ await expect(page.getByRole('img',{name:'Red layered T monogram'})).toBeVisible();
+ await page.locator('#quote').scrollIntoViewIfNeeded();
+ await expect(page.getByLabel('Your name',{exact:true})).toBeVisible();
+});
+
+test("high-DPI mobile rendering keeps the approved resolution cap through rotation",async({page,context},info)=>{
+ test.skip(info.project.name!=="desktop","High-DPI metrics use Chromium CDP, not a physical phone.");
+ const session=await context.newCDPSession(page);
+ for(const [width,height]of [[390,844],[844,390]]){
+  await session.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:3,mobile:true});
+  if(width===390)await page.goto('/#hero-title');
+  const view=page.getByTestId('hero-emblem-view');await view.scrollIntoViewIfNeeded();
+  await expect(view).toHaveAttribute('data-ready','true',{timeout:45000});
+  await expect.poll(()=>page.locator('.hero canvas').evaluate(canvas=>
+   (canvas as HTMLCanvasElement).width<=canvas.getBoundingClientRect().width*1.25+1)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.getByRole('button',{name:'Reset emblem',exact:true}).click();
+  await expect(view).toHaveAttribute('data-yaw','0.000');
+ }
+ await session.detach();
+});
+
+test("hero returns reliably after repeated internal navigation and browser back",async({page},info)=>{
+ test.skip(info.project.name!=="desktop","Active route-return WebGL checks use Chromium.");
+ await page.goto('/#hero-title');
+ const view=page.getByTestId('hero-emblem-view');
+ for(let iteration=0;iteration<3;iteration++){
+  await view.scrollIntoViewIfNeeded();
+  await expect(view).toHaveAttribute('data-ready','true',{timeout:45000});
+  await page.getByRole('link',{name:'Operations preview',exact:false}).click();
+  await expect(page).toHaveURL(/\/admin$/);
+  await page.goBack();
+  await view.scrollIntoViewIfNeeded();
+  await expect(view).toHaveAttribute('data-ready','true',{timeout:45000});
+  // Include deferred renderer teardown, so a transient ready flag cannot hide
+  // a context being lost shortly after the cached route returns.
+  await page.waitForTimeout(800);
+  await expect(view).toHaveAttribute('data-ready','true');
+  await page.getByRole('button',{name:'Reset emblem',exact:true}).click();
+  await expect(view).toHaveAttribute('data-yaw','0.000');
+ }
+});
+
 test("animated hero emblem fits the seven requested viewports", async ({page}, info) => {
   test.skip(info.project.name !== "desktop", "The viewport matrix is run once in Chromium.");
   await page.goto("/");

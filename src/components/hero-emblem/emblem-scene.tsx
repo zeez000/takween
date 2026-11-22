@@ -1,11 +1,13 @@
 "use client";
 
-import {Canvas, useFrame, useThree} from "@react-three/fiber";
+import {useFrame, useThree} from "@react-three/fiber";
+import {SceneCanvas as Canvas} from "@/components/scene-canvas";
 import {useEffect, useMemo, useRef} from "react";
 import {ExtrudeGeometry, Group, MeshStandardMaterial, Shape} from "three";
 import {emblemContours} from "./outline";
 
 type SceneProps = {
+  active: boolean;
   pitch: number;
   yaw: number;
   idle: boolean;
@@ -14,7 +16,7 @@ type SceneProps = {
   onFailure: () => void;
 };
 
-function Emblem({pitch, yaw, idle, onPose, onReady, onFailure}: SceneProps) {
+function Emblem({active, pitch, yaw, idle, onPose, onReady, onFailure}: SceneProps) {
   const group = useRef<Group>(null);
   const idleTime = useRef(0);
   const tick = useRef<number | undefined>(undefined);
@@ -60,13 +62,15 @@ function Emblem({pitch, yaw, idle, onPose, onReady, onFailure}: SceneProps) {
   }, [geometries, materials]);
 
   useEffect(() => {
+    if (!active) return;
     invalidate();
     // Bound idle GPU work and keep easing alive until the exact target is drawn.
     tick.current = window.setInterval(invalidate, 1000 / 30);
     return () => window.clearInterval(tick.current);
-  }, [pitch, yaw, idle, invalidate]);
+  }, [active, pitch, yaw, idle, invalidate]);
 
   useFrame((_, delta) => {
+    if (!active) return;
     if (!group.current) return;
     // One render loop, slow front-centred motion, no jump after a suspended frame.
     const dt = Math.min(delta, .05);

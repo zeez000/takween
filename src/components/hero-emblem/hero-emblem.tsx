@@ -21,6 +21,7 @@ export function HeroEmblem() {
   const displayedPose = useRef({...neutral});
   const gesture = useRef<{x: number; y: number; id: number; pose: typeof neutral; active: boolean} | null>(null);
   const [enabled, setEnabled] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [manual, setManual] = useState(false);
@@ -46,7 +47,7 @@ export function HeroEmblem() {
       cancel();
       if (!visible || motion.matches || document.hidden || document.querySelector(".entry-screen[open]")) {
         setEnabled(false);
-        setReady(false);
+        if (motion.matches) { setLoaded(false); setReady(false); }
         return;
       }
       const load = () => {
@@ -59,7 +60,7 @@ export function HeroEmblem() {
             context?.getExtension("WEBGL_lose_context")?.loseContext();
           } catch { supported = false; }
         }
-        if (supported) setEnabled(true);
+        if (supported) { setLoaded(true); setEnabled(true); }
       };
       idleRequest = typeof window.requestIdleCallback === "function"
         ? window.requestIdleCallback(load, {timeout: 1800})
@@ -137,9 +138,9 @@ export function HeroEmblem() {
         {emblemContours.map((contour, index) => <polygon key={index}
           points={contour.map(point => point.join(",")).join(" ")} fill="#ed203b"/>)}
       </svg>}
-      {enabled && !failed && <div className="emblem-canvas">
+      {loaded && !failed && <div className="emblem-canvas" hidden={!enabled}>
         <EmblemBoundary onFailure={onFailure}>
-          <EmblemScene pitch={pose.pitch} yaw={pose.yaw} idle={!manual} onPose={onPose} onReady={onReady} onFailure={onFailure}/>
+          <EmblemScene active={enabled} pitch={pose.pitch} yaw={pose.yaw} idle={!manual} onPose={onPose} onReady={onReady} onFailure={onFailure}/>
         </EmblemBoundary>
       </div>}
     </div>
