@@ -130,6 +130,12 @@ test("native touch drag rotates horizontally and vertical swipe scrolls the page
  const before=await page.evaluate(()=>scrollY);
  await swipe(240,390,0,-200);
  await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(before+70);
+ // Let native touch momentum finish before asserting an exact scripted scroll position.
+ await expect.poll(async()=>{
+  const previous=await page.evaluate(()=>scrollY);
+  await page.waitForTimeout(200);
+  return Math.abs(await page.evaluate(()=>scrollY)-previous);
+ }).toBeLessThan(1);
  await progress(page,.75);await expect(view).toHaveAttribute("data-explosion","1.0000");
  await page.screenshot({path:info.outputPath("mobile-exploded.png"),animations:"disabled"});
  await session.detach();

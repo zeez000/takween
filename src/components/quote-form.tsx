@@ -1,5 +1,5 @@
 "use client";
-import {useState,type FormEvent} from "react";
+import {useRef,useState,type FormEvent} from "react";
 import {site} from "@/config/site";
 import {formatEnquiry,validateDesignFile} from "@/lib/enquiry";
 export function QuoteForm() {
@@ -7,17 +7,36 @@ export function QuoteForm() {
   const [fileError,setFileError]=useState("");
   const [draft,setDraft]=useState("");
   const [message,setMessage]=useState("");
-  function prepare(event:FormEvent<HTMLFormElement>) {
+  const [sending,setSending]=useState(false);
+  const busy=useRef(false);
+  const retry=useRef<{draft:string;id:string}|null>(null);
+  async function prepare(event:FormEvent<HTMLFormElement>) {
     event.preventDefault(); setMessage(""); setDraft("");
+    if(busy.current)return;
     if(fileError){setMessage("Remove or replace the unsupported file before preparing a draft.");return;}
     // Unnamed controls keep draft values out of native submissions before hydration.
     const controls=event.currentTarget.elements;
     const value=(id:string)=>(controls.namedItem(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).value;
-    setDraft(formatEnquiry({
+    const values={
       name:value("draft-name"),contact:value("draft-email"),material:value("draft-material"),
       quantity:value("draft-quantity"),details:value("draft-details")
-    }));
-    setMessage("Draft prepared on this device. Nothing has been sent.");
+    };
+    const formatted=formatEnquiry(values);
+    if((event.nativeEvent as SubmitEvent).submitter?.getAttribute("data-draft")==="true"){
+      setDraft(formatted);setMessage("Draft prepared on this device. Nothing has been sent.");return;
+    }
+    if(!retry.current || retry.current.draft!==formatted)retry.current={draft:formatted,id:crypto.randomUUID()};
+    busy.current=true;setSending(true);
+    try{
+      const response=await fetch("/api/enquiry",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name:values.name,email:values.contact,material:values.material,quantity:values.quantity,details:values.details,
+          website:value("website"),requestId:retry.current.id})});
+      const result=await response.json();
+      if(response.status!==202 || result.status!=="accepted" || typeof result.id!=="string" || !result.id)throw new Error("Not accepted");
+      setMessage("Your enquiry was accepted by our email provider. Inbox delivery is not yet confirmed.");
+    }catch{
+      setDraft(formatted);setMessage("We could not confirm your enquiry was accepted. Retry, or copy the draft and email us directly.");
+    }finally{busy.current=false;setSending(false);}
   }
   return <form className="quote-form" onSubmit={prepare} onChange={()=>{setDraft("");setMessage("");}}>
     <div className="form-grid">
@@ -33,14 +52,16 @@ export function QuoteForm() {
       <input id="design-file" type="file" accept=".stl,.3mf,.step,.stp" aria-describedby="file-help file-result" aria-invalid={Boolean(fileError)} onChange={event=>{const file=event.currentTarget.files?.[0];const error=file?validateDesignFile(file):null;setFileError(error??"");setFileName(file&&!error?file.name:"");}}/>
       <p id="file-result" role="status">{fileError||(fileName?`${fileName} selected locally. Not uploaded.`:"No file selected.")}</p>
     </div>
-    <button className="button" type="submit">Prepare enquiry draft ↗</button>
-    <p className="form-note">Preview only. This form does not submit an enquiry or create an order. Pricing and feasibility require manual review.</p>
+    <div hidden aria-hidden="true"><label>Leave this field empty<input id="website" tabIndex={-1} autoComplete="off"/></label></div>
+    <div className="button-row"><button className="button" type="submit" disabled={sending}>{sending?"Sending…":"Send enquiry ↗"}</button>
+    <button className="button button-secondary" type="submit" data-draft="true" disabled={sending}>Prepare enquiry draft ↗</button></div>
+    <p className="form-note">Enquiries do not create orders or quotations. Design files remain on your device and are not attached. Pricing and feasibility require manual review.</p>
     <p role="status" aria-live="polite">{message}</p>
     {draft&&<div className="draft-panel">
       <label>Your enquiry draft<textarea readOnly rows={10} value={draft}/></label>
       <div className="button-row">
         <button className="button button-secondary" type="button" onClick={async()=>{
-          try { await navigator.clipboard.writeText(draft); setMessage("Draft copied. No enquiry has been sent."); }
+          try { await navigator.clipboard.writeText(draft); setMessage("Draft copied. Paste it into your email app."); }
           catch { setMessage("Select and copy the draft text manually."); }
         }}>Copy draft</button>
         <a className="button" href={`mailto:${site.enquiryEmail}`}>Open email app ↗</a>

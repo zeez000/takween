@@ -1,0 +1,24 @@
+.hero-emblem { min-width: 0; }
+.emblem-view { position: absolute; inset: 26px 0 40px; touch-action: pan-y; }
+.emblem-view[data-ready="true"] { cursor: grab; }
+.emblem-view[data-ready="true"]:active { cursor: grabbing; }
+.emblem-canvas, .emblem-fallback { position: absolute; inset: 0; }
+.emblem-canvas canvas { touch-action: pan-y; }
+.emblem-fallback {
+  width: 74%; height: 69%; margin: auto;
+  filter: drop-shadow(0 6px 1px #630e1e);
+}
+.emblem-contact-shadow {
+  position: absolute; left: 26%; right: 26%; bottom: 17%; height: 26px;
+  background: radial-gradient(ellipse, #050205b0, transparent 72%);
+}
+.emblem-controls {
+  position: absolute; left: 0; right: 0; bottom: 36px;
+  display: flex; gap: 5px; justify-content: center;
+}
+.emblem-controls button {
+  min-width: 44px; min-height: 44px; padding: 6px 10px;
+  border: 1px solid #46313a; background: #130f14; color: #e3d9de;
+  font: .64rem monospace;
+}
+.emblem-controls button:hover { border-color: #e34253; }

@@ -4,7 +4,7 @@ import {getSeoConfig} from "@/lib/seo";
 import {AssemblyExperience} from "@/components/assembly/assembly-experience";
 import {EntryScreen} from "@/components/entry-screen";
 import {Header} from "@/components/header";
-import {PartVisual} from "@/components/part-visual";
+import {HeroEmblem} from "@/components/hero-emblem/hero-emblem";
 import {QuoteForm} from "@/components/quote-form";
 import {Reveal} from "@/components/reveal";
 import {ButtonLink,Placeholder,SectionHeading} from "@/components/ui";
@@ -21,7 +21,7 @@ export default function Home() {
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(organization).replace(/</g,"\\u003c")}}/><EntryScreen/><Header/><main id="main-content">
     <section className="hero shell" aria-labelledby="hero-title">
       <div className="hero-copy"><p className="eyebrow"><span className="status-dot"/>{site.location}</p><p className="hero-prelude">FROM AN IDEA. TO SOMETHING REAL.</p><h1 id="hero-title">YOU NAME IT.<br/><span>WE MAKE IT.</span></h1><p className="hero-description">Custom plastic 3D printing for the things you imagine, the problems you solve, and the parts you need next.</p><div className="button-row"><ButtonLink href="#quote">Start with your idea ↗</ButtonLink><ButtonLink href="#process" secondary>See how it works ↓</ButtonLink></div><div className="hero-footnote"><span>{site.serviceStatus}</span><span>Custom FDM / PLA / PETG</span></div></div>
-      <PartVisual/>
+      <HeroEmblem/>
     </section>
     <AssemblyExperience/>
     <div className="principles"><div className="shell principles-inner"><span>IDEA → DESIGN → PRINT</span><span>SMALL DETAILS. REAL POSSIBILITIES.</span><span>BUILT LAYER BY LAYER</span></div></div>

@@ -43,7 +43,8 @@ test("operations and tracking remain honest placeholders",async({page})=>{
 test("reduced motion disables decorative animation",async({page})=>{
  const errors:string[]=[];page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
  await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
- expect(await page.locator(".hero .part-stack").evaluate(el=>getComputedStyle(el).animationName)).toBe("none");
+ await expect(page.getByRole("img",{name:"Red layered T monogram"})).toBeVisible();
+ await expect(page.locator(".hero canvas")).toHaveCount(0);
  expect(errors.filter(message=>/hydrat/i.test(message))).toEqual([]);
 });
 test("responsive widths and visual capture",async({page},testInfo)=>{
