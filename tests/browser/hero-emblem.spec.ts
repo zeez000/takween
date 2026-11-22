@@ -219,8 +219,11 @@ test("high-DPI mobile rendering keeps the approved resolution cap through rotati
   if(width===390)await page.goto('/#hero-title');
   const view=page.getByTestId('hero-emblem-view');await view.scrollIntoViewIfNeeded();
   await expect(view).toHaveAttribute('data-ready','true',{timeout:45000});
-  await expect.poll(()=>page.locator('.hero canvas').evaluate(canvas=>
-   (canvas as HTMLCanvasElement).width<=canvas.getBoundingClientRect().width*1.25+1)).toBe(true);
+  await expect.poll(()=>page.locator('.hero canvas').evaluate(canvas=>{
+   const surface=canvas as HTMLCanvasElement,box=canvas.getBoundingClientRect();
+   return surface.width>=box.width-1&&surface.height>=box.height-1&&
+    surface.width<=box.width*1.25+1&&surface.height<=box.height*1.25+1;
+  })).toBe(true);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole('button',{name:'Reset emblem',exact:true}).click();
   await expect(view).toHaveAttribute('data-yaw','0.000');

@@ -1,0 +1,38 @@
+[
+  {
+    "label": "desktop",
+    "key": "hero",
+    "changedRatio": 0,
+    "meanDelta": 0
+  },
+  {
+    "label": "desktop",
+    "key": "gear",
+    "changedRatio": 0,
+    "meanDelta": 0
+  },
+  {
+    "label": "mobile",
+    "key": "hero",
+    "changedRatio": 0,
+    "meanDelta": 0
+  },
+  {
+    "label": "mobile",
+    "key": "gear",
+    "changedRatio": 0,
+    "meanDelta": 0
+  },
+  {
+    "label": "landscape",
+    "key": "hero",
+    "changedRatio": 0,
+    "meanDelta": 0
+  },
+  {
+    "label": "landscape",
+    "key": "gear",
+    "changedRatio": 0,
+    "meanDelta": 0
+  }
+]

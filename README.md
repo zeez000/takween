@@ -75,3 +75,5 @@ Commit package-lock.json and use npm.cmd ci for reproducible installations.
 
 ## Cinematic milestone and owner rules
 Read PROJECT_RULES.md and BLUEPRINT_AUDIT.md. The sculpture preview is /#assembly; the original enquiry remains /#quote. See VERIFICATION.md for current results. The blueprint is a roadmap, not a claim that backend modules are live.
+
+Latest measured performance and email reliability work: [engineering report](docs/PERFORMANCE_EMAIL_ENGINEERING.md). This includes retained/rejected optimizations, original-versus-candidate visuals, real-device limitations and the explicit approval gate for genuine Resend sending.
