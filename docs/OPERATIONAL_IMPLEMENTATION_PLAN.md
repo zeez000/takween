@@ -1,18 +1,35 @@
 # Operational implementation: architecture and migration design
 
-Status: preparation only; no migrations, infrastructure changes or sending enabled.
+Status: phase 1 implemented locally behind disabled flags; no hosted migrations,
+infrastructure changes or sending enabled.
 Base: codex/combined-release, 5e3bee651dcc2e645c1a223971936f80d689cf80.
 Implementation branch: codex/operational-foundation.
 
-## Specification gate
+## Authoritative specifications and precedence
 
-The owner named `3d website blueprint(1).docx` and
-`Fateen_Technologies_Website_Integration_Note(2).docx`. These exact files have
-not been located or reviewed. Older unnumbered copies exist in Downloads;
-equivalence has not been established. Obtain the named files, extracted contents,
-or owner confirmation that the older copies are authoritative before implementing
-document-dependent behaviour. The current owner message supersedes older scope:
-operational website; uploads, accounts, payments and automatic fulfilment deferred.
+Both exact DOCX files were supplied in TAKWEEN_Codex_References.zip and read in
+full, including table text and footer text, on 23 November 2026. Neither contains
+drawings, embedded documents or tracked changes. Originals were extracted only
+into ignored `artifacts/operational-references/`; no private source documents are
+committed. SHA256:
+
+- Blueprint: C49729417045938B6B7679F2FBAA64FC1DF8C437DC442186FA31EDD3648AAA67
+- Fateen note: 8987A1B1881494B3CE00921A0AAEE496D8E2E5C883DB72895661E58F8CB50718
+
+| Source requirement | Resolved implementation decision |
+| --- | --- |
+| TAKWEEN is a temporary brand; hero concepts are suggestions | Confirmed TAKWEEN LABS branding and approved layered T/original gear take precedence. No redesign or new preloader/finale. |
+| Operational MVP and later automation | Full operational website remains the release goal. This phase is the backend foundation, not an operational-launch claim. |
+| Model, idea and catalogue enquiry journeys with uploads | Idea and catalogue enquiries proceed in dependency order; all customer file uploads/previews are deferred. No buckets or attachment tables now. |
+| Cloudflare Pages or equivalent static hosting | Retain tested Next.js/OpenNext Workers architecture. Backend requires a server runtime. |
+| Fateen final section, possible later dedicated page | Keep a dedicated Beyond Plastic section inside TAKWEEN; no separate site or page in current scope. |
+| Fateen EDM, grinding, turning and ambiguous DRO equipment | Retain only verified, owner-approved service copy. No DRO specifications or tolerances; document descriptions are not proof of available capacity. |
+| Separate machining queue and authorized referral | Distinct fateen_machining category; explicit referral consent; no automatic forwarding or additional staff access. Owner-only initial role avoids broad cross-business disclosure. |
+| WhatsApp and optional email | Current verified contact remains takweenlabs.in@gmail.com. No unverified phone/WhatsApp channels. Real sending needs separate approval. |
+| Customer accounts, payments, fixed checkout | Deferred; no customer auth, payment endpoints or automatic fulfilment. |
+| Supabase private storage for models/PDFs | No customer buckets now. Later quotation PDFs can be authenticated on-demand downloads; any storage requires separate access review. |
+| Example costs and 20–30 products | Example prices are not commercial rates; approved assets, rights and catalogue selection are still required. |
+| Backups, privacy, retention, legal/entity identity | Required release decisions; no invented retention policy, contracting entity, tax information or service guarantees. |
 
 ## Inspected baseline
 
@@ -114,14 +131,17 @@ Do not enable sending or add live scheduling in preparation commits.
   commercial rights. Fateen referral consent is independent of enquiry consent;
   no forwarding until the owner approves recipients and routing.
 
-## Versioned migration sequence (not yet executable SQL)
+## Versioned migration sequence
 
 1. Inventory actual target schema read-only with owner authorization. Determine
    whether the old proposal was ever applied; never assume an empty database.
-2. Core contacts/enquiries/events/admin_roles/audit/outbox with constraints,
-   indexes, RLS and revoked default grants in the same transaction.
-3. Restricted intake/idempotency operation and notification lease functions;
-   atomic event/audit writes and database authorization tests.
+2. Prepared `202611230001_operational_core.sql`: contacts/enquiries/events/
+   admin_roles/audit/outbox with constraints, indexes, RLS and revoked grants.
+   Uses a new non-exposed `takween` schema to avoid collisions with the old public
+   proposal. Only specifically granted RPC façades are public-schema functions.
+3. Prepared `202611230002_persistent_intake.sql`: service-only atomic intake,
+   idempotency and event/audit writes. Outbox dispatch/leases remain a separate
+   reviewed phase. No notification processor or sending is enabled.
 4. Quotations/items/orders/events with legal state transitions and transactional
    quotation acceptance/order creation. Flow: new request → quoted → approved →
    printing → finishing → ready → delivered; explicit hold, revision and cancel
@@ -134,8 +154,9 @@ to hosted Supabase and do not wire automatic migrations into CI/deployment.
 
 ## Dependency order and verification gates
 
-1. Resolve source documents; confirm Fateen descriptions, routing, privacy notice,
-   retention and admin bootstrap identity. No invented equipment or tolerances.
+1. Source documents resolved. Confirm Fateen descriptions/routing, privacy notice,
+   retention and admin bootstrap identity before live activation. No invented
+   equipment or tolerances.
 2. Commit architecture/migration design, then locally tested core SQL and RLS.
 3. Build server repository/intake/outbox behind disabled flags; test database
    rollback, duplicates, conflicting retries, concurrency, missing config, provider
@@ -170,9 +191,24 @@ email sending, deployment and DNS all remain approval gates. A free-plan
 recommendation is not a current quota verification; check current official limits
 before adding runtime services. No infrastructure or business settings changed.
 
-## Work completed in this preparation step
+## Phase 1 implementation boundary
 
-Inspected current tracked source/configuration and clean Git baseline. Created
-this plan only. No source, dependency, SQL, auth, storage, design or runtime
-behaviour changed. Test execution for implementation phases has not started;
-previous CI is historical evidence, not fresh validation of operational features.
+Prepared versioned local SQL, read-only owner authorization, and isolated
+`/api/operational/enquiries` and `/api/operational/owner` routes behind false
+flags. The existing public form and `/api/enquiry` provider-only workflow remain
+unchanged. Persistent intake requires an explicitly configured privacy notice,
+server-only database secret and approval before activation. It never sends email.
+Database receipt means stored/pending, not provider acceptance or delivery.
+
+Phase 1 restricts all owner access to reads. Login/logout, invitation/MFA
+enrolment UI, owner inbox, notes, quotation/order tables and mutations, catalogue,
+material tracking and dispatch/reconciliation are subsequent phases. Only the
+owner authorization primitive is implemented; do not claim a complete owner
+authentication workflow. Session refresh is confined to writable Route Handlers;
+there is no global auth proxy affecting the public homepage.
+
+The operational tables are private under `takween`; do not add that schema to
+Supabase's exposed API schemas. Authenticated reads are still protected by AAL2
+and allowlist RLS. Future server RPCs must expose only authorized bounded results.
+All notifications stay pending until a separately tested dispatcher is approved.
+See OPERATIONAL_PHASE_1.md for executed test results and limitations.
