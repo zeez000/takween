@@ -16,6 +16,7 @@
     "ENQUIRY_ENABLED": "false",
     "PERSISTENT_ENQUIRIES_ENABLED": "false",
     "OPERATIONS_ENABLED": "false",
+    "ENQUIRY_NOTIFICATIONS_ENABLED": "false",
     "SITE_URL": "https://takween-labs-preview.abdzeez000.workers.dev",
     "SITE_INDEXING_ENABLED": "false"
   },
