@@ -4,7 +4,7 @@ import {readFile,readdir} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite(); const owner=randomUUID(),ordinary=randomUUID();let enquiry:string,quote:string,version=1;
-async function identity(sub=owner,aal='aal2',role='authenticated'){
+async function identity(sub:string=owner,aal='aal2',role='authenticated'){
  await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub,aal})]);await db.exec(`set role ${role}`);
 }
 async function command(payload:object,id=randomUUID()){
@@ -39,7 +39,7 @@ test('integer paise rounding and rollback are authoritative in SQL',async()=>{
  const r=await command(save());version=r.version;
  await db.exec('reset role');const q=(await db.query<{subtotal_paise:number;tax_paise:number;total_paise:number}>('select subtotal_paise,tax_paise,total_paise from takween.quotations')).rows[0];assert.equal(Number(q.subtotal_paise),303);assert.equal(Number(q.tax_paise),4);assert.equal(Number(q.total_paise),307);await identity();
  await assert.rejects(command({...save(),items:[{description:'Invalid',material:'PLA',quantity:-1,unitPaise:100}]}));
- await db.exec('reset role');assert.equal((await db.query('select description from takween.quotation_items')).rows[0].description,'Synthetic part');await identity();
+ await db.exec('reset role');assert.equal((await db.query<{description:string}>('select description from takween.quotation_items')).rows[0].description,'Synthetic part');await identity();
  await assert.rejects(command({...save(),version:1}));
 });
 test('owner lifecycle is evidenced and issued content cannot be edited',async()=>{
@@ -67,4 +67,25 @@ test('production entries and status events are private, versioned and retry safe
  const listed=(await db.query<{result:{production:unknown[];history:unknown[]}[]}>('select public.takween_commercial_list($1) result',['orders'])).rows[0].result;assert.equal(listed[0].production.length,1);assert.equal(listed[0].history.length,6);
  for(const aal of ['aal1','aal2']){await identity(ordinary,aal);assert.equal((await db.query('select * from takween.orders')).rows.length,0);await assert.rejects(db.query('select public.takween_commercial_list($1)',['orders']));await assert.rejects(orderCommand(payload));}
  await identity();await assert.rejects(db.query('update takween.production_entries set material=\'changed\''));
+});
+test('draft approval requires explicit tax terms entity and validity; revisions supersede safely',async()=>{
+ await db.exec('reset role');const request=randomUUID();await db.query('select public.takween_submit_enquiry($1,$2)',[request,JSON.stringify({name:'Revision synthetic',email:'test@example.invalid',description:'Synthetic revision request',quantity:1,material:'PETG',category:'printing',contactConsent:true,referralConsent:false,privacyVersion:'test'})]);
+ const id=(await db.query<{id:string}>('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;await identity();
+ const nonce=randomUUID(),payload={action:'create',enquiryId:id};const q=await command(payload,nonce);
+ await assert.rejects(orderCommand(payload,nonce));await assert.rejects(db.query('select takween.takween_quote_command($1,$2)',[randomUUID(),JSON.stringify(payload)]));
+ const transition=(state:string,v:number)=>command({action:'transition',id:q.id,version:v,state,evidence:'Synthetic lifecycle evidence'});
+ await assert.rejects(transition('approved',1));
+ const data={...save(),id:q.id,version:1,taxBps:null};let r=await command(data);await assert.rejects(transition('approved',r.version));
+ r=await command({...data,version:r.version,taxBps:0});r=await transition('approved',r.version);r=await transition('sent',r.version);r=await transition('rejected',r.version);
+ const revision=await command(payload);assert.notEqual(revision.id,q.id);await assert.rejects(transition('accepted',r.version));
+ const rows=(await db.query<{r:{revision:number}[]}>('select public.takween_commercial_list($1,$2) r',['quotations','Revision synthetic'])).rows[0].r;assert.equal(rows.length,2);assert.deepEqual(rows.map(q=>q.revision).sort(),[1,2]);
+});
+test('every Phase3 table denies anonymous access and private rows at AAL1/non-owner',async()=>{
+ const tables=['quotations','quotation_items','commercial_events','orders','order_events','production_entries'];
+ for(const [sub,aal,role] of [[owner,'aal1','authenticated'],[ordinary,'aal2','authenticated'],[owner,'aal2','anon']]){
+  await identity(sub,aal,role);
+  for(const table of tables){if(role==='anon')await assert.rejects(db.query(`select * from takween.${table}`));else assert.equal((await db.query(`select * from takween.${table}`)).rows.length,0);}
+ }
+ await identity();await assert.rejects(db.query('select * from takween.commercial_requests'));
+ for(const table of tables)await assert.rejects(db.query(`delete from takween.${table}`));
 });
