@@ -99,9 +99,9 @@ export async function handlePersistentEnquiry(request: Request, env: IntakeEnvir
   if (!submission) return json(400, {error: 'Please check the details and required consent.'});
   try {
     const stored = await store(submission.id, submission.payload);
-    if (!/^TK-[0-9a-f]{32}$/.test(stored.reference) || stored.notification_status !== 'pending') throw Error('Invalid storage acknowledgement');
-    return json(201, {status:'stored', reference:stored.reference, notificationStatus:'pending',
-      message:'Your request is stored. No email notification or quotation is confirmed.'});
+    if (!/^TK-[0-9a-f]{32}$/.test(stored.reference) || !['pending','leased','accepted','failed','uncertain'].includes(stored.notification_status)) throw Error('Invalid storage acknowledgement');
+    return json(201, {status:'stored', reference:stored.reference, notificationStatus:stored.notification_status,
+      message:'Your request is stored. No email delivery or quotation is confirmed.'});
   } catch (error) {
     return error instanceof SubmissionConflict
       ? json(409, {error:'This submission identifier was already used for different details.'})

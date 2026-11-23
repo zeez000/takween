@@ -18,6 +18,12 @@ test('persistent intake confirms storage only and never calls an email transport
   const result = await response.json();assert.equal(result.status,'stored');assert.equal(result.notificationStatus,'pending');
   assert.equal(result.id,undefined);assert.match(result.message,/No email/);
 });
+test('retry receipts distinguish provider acceptance from inbox delivery',async()=>{
+  for(const notification_status of ['accepted','failed','uncertain','leased']){
+    const r=await handlePersistentEnquiry(request(),env(),async()=>({...stored,notification_status}));
+    assert.equal(r.status,201);const result=await r.json();assert.equal(result.status,'stored');assert.equal(result.notificationStatus,notification_status);assert.match(result.message,/No email delivery/);
+  }
+});
 test('disabled or incompletely configured intake never touches storage', async () => {
   for (const config of [{...env(),PERSISTENT_ENQUIRIES_ENABLED:'false'},{...env(),ENQUIRY_PRIVACY_VERSION:undefined},{...env(),ENQUIRY_IP_LIMITER:undefined}]) {
     assert.equal((await handlePersistentEnquiry(request(),config,async()=>{throw Error('must not run')})).status,503);
