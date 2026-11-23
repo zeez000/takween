@@ -1,6 +1,10 @@
 # Operational migrations and local security tests
 
 These migrations are prepared for review, not applied to hosted Supabase.
+Phase 2 has executed all seven migrations against actual disposable local Supabase.
+See ../docs/OPERATIONAL_PHASE_2_RUNBOOK.md for real Auth/MFA/PostgREST tests and
+the new owner, intake and notification security boundaries. Embedded tests below
+remain useful fast tests, but are no longer the only local database evidence.
 Do not run the historical `schema.proposed.sql`. It remains an archived design
 with different names and broader deferred features.
 

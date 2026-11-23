@@ -1,7 +1,8 @@
 # Operational implementation: architecture and migration design
 
-Status: phase 1 implemented locally behind disabled flags; no hosted migrations,
-infrastructure changes or sending enabled.
+Status: phases 1 and 2 implemented for local review behind disabled flags. Real
+disposable Supabase Auth, MFA, PostgREST, RLS and concurrency have now been tested.
+No hosted migrations, infrastructure changes or real sending enabled.
 Base: codex/combined-release, 5e3bee651dcc2e645c1a223971936f80d689cf80.
 Implementation branch: codex/operational-foundation.
 
@@ -211,4 +212,9 @@ The operational tables are private under `takween`; do not add that schema to
 Supabase's exposed API schemas. Authenticated reads are still protected by AAL2
 and allowlist RLS. Future server RPCs must expose only authorized bounded results.
 All notifications stay pending until a separately tested dispatcher is approved.
-See OPERATIONAL_PHASE_1.md for executed test results and limitations.
+See OPERATIONAL_PHASE_1.md for the historical phase-1 boundary. Phase 2 adds the
+owner workspace, invitation/MFA onboarding, inbox/notes, persistent public form,
+durable dispatcher and real local Supabase verification. Current implementation,
+test results and activation/rollback gates are documented in OPERATIONAL_PHASE_2.md
+and OPERATIONAL_PHASE_2_RUNBOOK.md. Quotation/order management, catalogue and
+production management remain subsequent phases; uploads and payments stay deferred.

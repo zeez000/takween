@@ -1,5 +1,10 @@
 # Planned Supabase architecture
 
+Current local implementation: use the versioned migrations under migrations/ and
+the Phase 2 runbook in docs/. They have been tested with real disposable Supabase;
+no hosted migration or connection was activated. The proposal below is historical
+design, not the executable schema or a statement that operational code is absent.
+
 schema.proposed.sql is a design document, NOT an applied production migration.
 No account, database, bucket or authentication is connected in this phase.
 RLS is enabled with no application policies, deliberately denying normal access.
