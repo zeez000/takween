@@ -284,3 +284,108 @@ Release/GitHub integration readiness remains NO-GO until disk space is restored,
 safe local runtime recovery is possible, the two canonical cases pass, and the
 complete browser suite passes. A draft PR targeting operational-foundation has
 not been opened or pushed by this checkpoint.
+
+## Environment recovery verification — 24 November 2026
+
+Starting commit: `bab835041364bd8e187ff63774938f5907e88611`.
+The owner confirmed sufficient recovered space and authorized safe diagnostics,
+without restarting WSL/services or interrupting unrelated work. No cleanup was
+performed in this pass. Application source and production configuration are
+unchanged. The prior Windows disk blocker has cleared; the WSL exec/database
+blocker has not.
+
+### Read-only storage findings
+
+C: initially had 17,880,756,224 bytes free (16.65 GiB). It remained above 16 GiB
+during the isolated build/browser run. Selected directory totals are logical
+bytes, not guaranteed allocated/reclaimable disk space. Links were skipped and
+access-denied directories reported; this is not an inventory of personal files.
+
+| Location | Logical bytes | Approximate GiB | Disposition |
+| --- | ---: | ---: | --- |
+| C:\\Windows\\Temp | 40,606,945 | 0.038 | Review through Windows Storage; one unreadable directory. |
+| C:\\Users\\user\\AppData\\Local\\Temp | 885,328,551 | 0.825 | Do not blanket-delete: source logo/reference images also live in Temp. |
+| C:\\Users\\user\\AppData\\Local\\npm-cache | 3,202,524,416 | 2.983 | Optional cache maintenance only after approval; future downloads required. |
+| Repository artifacts | 1,164,784,681 | 1.085 | Keep screenshots, traces and private local fixtures; no wholesale deletion. |
+| Repository .next | 231,510,958 | 0.216 | Generated output, but approval and active-server check needed before removal. |
+| Repository .open-next | 1,989,867 | 0.002 | Optional generated-output cleanup, negligible benefit. |
+
+System-managed pagefile.sys was 13,554,237,440 bytes (~12.62 GiB), hiberfil.sys
+6,610,800,640 bytes (~6.16 GiB), and the Ubuntu ext4.vhdx file 7,183,794,176 bytes
+(~6.69 GiB). None is a disposable cleanup candidate. Do not disable virtual memory,
+delete a VHD/distribution, or remove source/Git/dependency history to reclaim space.
+
+Exact optional commands, **not executed**:
+
+```powershell
+# Opens Windows' review UI; select categories deliberately, not Downloads blindly.
+Start-Process "ms-settings:storagesense"
+
+# Preview only; no deletion. Check the active server before any approved cleanup.
+Get-NetTCPConnection -LocalPort 3100 -State Listen -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "C:\Users\user\.codex\worktrees\takween-audit\takween\.next" -Recurse -Force -WhatIf
+
+# Only AFTER explicit cache-cleanup approval; up to ~2.98 GiB logical estimate.
+npm cache clean --force --cache "C:\Users\user\AppData\Local\npm-cache"
+```
+
+`npm cache verify` can garbage-collect entries: it is cache maintenance, not a
+strictly read-only inspection. No cache maintenance is needed to resume testing.
+Temporary cleanup may recover less than the totals because some files are active.
+
+### Runtime health and pending approval
+
+Ubuntu and WslService report Running, but a new read-only
+`wsl --exec /bin/echo TAKWEEN_WSL_HEALTH_CHECK` again returned
+`Wsl/Service/HCS_E_CONNECTION_TIMEOUT`. No service/distro was stopped or restarted.
+The existing loopback Supabase Auth health endpoint returns HTTP 200. Bounded
+PostgreSQL/PostgREST checks do not complete; Auth health alone is not database
+readiness. Operational Worker port 8798 times out and public test port 8799 does
+not accept requests. No customer rows or credentials were printed.
+
+A separate explicit decision was requested before `wsl --terminate Ubuntu`:
+that would stop **all** Ubuntu processes, not only Takween. Inspection cannot
+prove absence of unrelated work while guest exec is broken. No restart approval
+has been assumed. No hosted targets or database resets were attempted.
+
+### Fresh production/canonical/browser evidence
+
+With disk space available, the existing isolated Windows source copy built
+successfully using the diagnostic CLI command `next build --webpack`:
+compilation 2.2 minutes, TypeScript 14.6 seconds, 17 prerendered pages. No repository
+script, Next config or OpenNext config was changed. This verifies a supported
+Next.js production build, **not** a fresh default Turbopack or OpenNext build.
+It ran separately on 127.0.0.1:3110 and did not replace port 3100.
+
+The canonical comparison now agrees for this single, clean production artifact:
+
+- Generated homepage HTML: canonical present.
+- Actual Next.js HTTP response: 200, canonical present.
+- Chromium DOM and WebKit DOM: canonical is
+  https://takween-labs-preview.abdzeez000.workers.dev.
+- The **two previously failed SEO cases passed unchanged first** (6.5 seconds).
+- Then the **complete default browser suite passed: 57 passed, 13 existing
+  conditional skips, 0 failures** (3.8 minutes), including both canonical cases,
+  original gear, layered T drag/reset/touch, viewport/keyboard matrix, WebGL
+  fallback, reduced motion, enquiry recovery and private feature gates.
+
+These are desktop/browser-emulation results, not physical Android/iPhone tests.
+The source has no verified canonical defect requiring a patch. The precise
+cause of the old generated/served mismatch remains unproven; clean Windows
+artifact/response/DOM consistency does not retroactively prove stale caches or
+certify the unavailable local **Worker** response. Actual OpenNext Worker HTML
+and Supabase runtime verification remain pending safe guest recovery.
+
+Evidence: ignored artifacts/stabilization/windows-webpack-recovery.log,
+canonical-comparison.json, windows-served.html, canonical-tests.log,
+full-browser.log, owned-service-health.json and browser-results/ screenshots.
+No secrets/customer records were added to tracked files. Previous 11 targeted
+SQL/PDF test passes remain evidence from the preceding checkpoint; they were
+not unnecessarily rerun in this recovery pass.
+
+**Current gate:** Windows production homepage/browser verification is GO.
+Phase 3 Worker/backend release verification remains BLOCKED, with no push,
+merge, deployment, genuine email, hosted SQL or DNS/indexing change authorized.
+Resume with safe recovery of the existing disposable guest and database,
+then actual Worker canonical comparison and relevant runtime checks. Do not
+change application code merely to make an unavailable environment appear green.
