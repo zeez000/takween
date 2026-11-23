@@ -47,3 +47,24 @@ test('owner lifecycle is evidenced and issued content cannot be edited',async()=
  await assert.rejects(command(save()));await assert.rejects(command({action:'create',enquiryId:enquiry}));
  await assert.rejects(db.query('update takween.quotations set state=\'draft\''));
 });
+let order:string,orderVersion=1;
+async function orderCommand(payload:object,id=randomUUID()){
+ return (await db.query<{result:{id:string;version:number;state:string}}>('select public.takween_order_command($1,$2) result',[id,JSON.stringify(payload)])).rows[0].result;
+}
+test('accepted quote converts once and the retry returns the same order',async()=>{
+ const payload={action:'create',quotationId:quote,note:'Synthetic owner approval'},id=randomUUID();
+ const a=await orderCommand(payload,id);order=a.id;assert.deepEqual(await orderCommand(payload,id),a);await assert.rejects(orderCommand(payload));
+ const listed=await db.query<{result:unknown[]}>('select public.takween_commercial_list($1,$2) result',['quotations','synthetic']);assert.equal(listed.rows[0].result.length,1);
+});
+test('production entries and status events are private, versioned and retry safe',async()=>{
+ const payload={action:'production',id:order,version:orderVersion,note:'Synthetic material observation',material:'PLA',materialMg:123000,printMinutes:40,estimatedCostPaise:100,actualCostPaise:110};
+ const nonce=randomUUID(),a=await orderCommand(payload,nonce);orderVersion=a.version;assert.deepEqual(await orderCommand(payload,nonce),a);
+ await assert.rejects(orderCommand(payload));
+ await assert.rejects(orderCommand({action:'transition',id:order,version:orderVersion,state:'machining',note:'Wrong category'}));
+ await assert.rejects(orderCommand({action:'transition',id:order,version:orderVersion,state:'completed',note:'Invalid jump'}));
+ for(const state of ['designing','printing','quality_check','ready','completed']){const r=await orderCommand({action:'transition',id:order,version:orderVersion,state,note:'Synthetic progress'});orderVersion=r.version;}
+ await assert.rejects(orderCommand({...payload,version:orderVersion}));
+ const listed=(await db.query<{result:{production:unknown[];history:unknown[]}[]}>('select public.takween_commercial_list($1) result',['orders'])).rows[0].result;assert.equal(listed[0].production.length,1);assert.equal(listed[0].history.length,6);
+ for(const aal of ['aal1','aal2']){await identity(ordinary,aal);assert.equal((await db.query('select * from takween.orders')).rows.length,0);await assert.rejects(db.query('select public.takween_commercial_list($1)',['orders']));await assert.rejects(orderCommand(payload));}
+ await identity();await assert.rejects(db.query('update takween.production_entries set material=\'changed\''));
+});
