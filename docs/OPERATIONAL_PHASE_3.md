@@ -199,3 +199,88 @@ Business approval still needed: entity and Fateen authority, prices/tax/GST poli
 terms/validity, evidence standards for manual decisions, retention/backup, owner
 recovery and eventual correction/reopening rules. No defaults imply approval.
 Physical phones, hosted CPU/session limits and real email delivery are not certified.
+
+## Stabilization checkpoint — 24 November 2026
+
+Starting commit: `1ce3a41943261159813c4a02a927ea65f95a5086`. No Phase 3 feature
+was rebuilt. Production source/configuration, homepage, animations, Resend and
+RLS/migrations remain unchanged. This checkpoint is **blocked, not release-ready**.
+
+### Confirmed environment findings
+
+- Read-only `wsl --list --running` reports Ubuntu; WslService is Running. Even
+  `wsl --exec /bin/echo TAKWEEN_WSL_READ_ONLY_OK` times out with
+  `Wsl/Service/HCS_E_CONNECTION_TIMEOUT`. A running service is not proof of a
+  responsive guest. No distro shutdown, VM/service restart or unrelated process
+  termination was attempted.
+- Windows reported about 1.3 GiB free physical memory; vmmemWSL used about 1.8 GB.
+  These observations do not prove memory pressure caused the guest failure.
+- **C: had exactly 0 bytes free.** The isolated Windows build log records
+  `ENOSPC: no space left on device, write`. The host also failed to start a Node
+  process with "There is not enough space on the disk." This independently
+  blocks reliable builds/runtime recovery. It is not a website source defect.
+- Only the new failed diagnostic build output under
+  `artifacts/stabilization/app/.next` was removed after verifying its absolute
+  workspace-contained path and absence of reparse points/nested links. It held
+  52,879,092 bytes. About 94 MB free was observed afterward, still insufficient
+  for builds. Source, dependencies, databases and previous screenshots/evidence
+  were not deleted. Owner-selected disk cleanup is required before continuing.
+
+### Canonical investigation status
+
+The prior generated Linux homepage HTML was observed to contain the canonical
+in both app and copied regression output. Prior browser failures saw zero DOM
+canonical links. An attempted independent Worker comparison did not serve a
+response (connection refused, followed by WSL connection timeout), so the actual
+source of this generated/served/DOM discrepancy is **not established**. Do not
+claim the canonical bug is fixed or attribute it conclusively to stale caches.
+
+The old temporary harness had independently confirmed configuration mistakes
+(duplicate webServer configuration and enabled `.dev.vars`); correcting those
+did not resolve the last two canonical assertions. A clean, correctly configured
+artifact/response/DOM comparison and failed-cases-first rerun remain mandatory.
+No metadata, assertions, canonical URLs or indexing flags were changed to hide
+the failures. The full browser suite was not repeated against an unavailable VM.
+
+### Windows Turbopack/PostCSS diagnosis
+
+The original panic says the PostCSS Node child exited with code 0 before the
+Turbopack parent connected, without an application stack. A disposable parent/
+child Node TCP handshake on 127.0.0.1 now succeeds. Direct processing of the actual
+globals.css through the installed Tailwind/PostCSS plugin succeeds (26,170 output
+bytes; 485–504 ms observed). Thus invalid stylesheet/plugin configuration and a
+general Node loopback failure were not reproduced.
+
+A separate copied build with a dependency junction cannot be used as a Turbopack
+reproduction: Turbopack correctly refuses packages outside that copy's hermetic
+root. The alternative **diagnostic-only** webpack command subsequently encountered
+ENOSPC. It is not a passing build or a production bundler change. The precise
+original Turbopack cause is still unproven; disk/resource recovery and a clean
+controlled build are needed before changing production configuration.
+
+### Focused verification
+
+- Fresh commercial SQL/RLS regression: **8 passed, 0 failed** using PGlite with
+  test Auth stand-ins, not actual Supabase. Covers paise/tax rounding, rollback,
+  issued immutability, explicit approval fields, revision supersession, accepted
+  quotation/order deduplication, production transitions and every new private
+  table's unauthorized access denial.
+- Fresh money/PDF/privacy tests: **3 passed, 0 failed**, bringing this checkpoint
+  to **11 targeted test passes**. Changed-test ESLint and full TypeScript
+  (`--noEmit --incremental false`) pass. Added a focused privacy regression that reads
+  the actual decompressed PDF text operators and embedded font's Unicode mapping.
+  It requires the customer-facing note/email and excludes internal history and
+  production-cost sentinels. A separate synthetic diagnostic already confirmed
+  these inclusions/exclusions without relying on compressed-byte string searches.
+- Bundled Poppler was unavailable at its configured runtime path in this session;
+  the installed PDF library supplied the decoded-text check without a dependency.
+- No backend behaviour changed. Actual Supabase/Auth/Worker/browser reruns are
+  blocked by the unresponsive local VM, not replaced by the embedded SQL results.
+  Prior complete-suite results remain historical evidence only.
+
+Only the PDF regression and this report are intended tracked changes. No push,
+merge, hosted SQL, deployment, real email, DNS or indexing change occurred.
+Release/GitHub integration readiness remains NO-GO until disk space is restored,
+safe local runtime recovery is possible, the two canonical cases pass, and the
+complete browser suite passes. A draft PR targeting operational-foundation has
+not been opened or pushed by this checkpoint.
