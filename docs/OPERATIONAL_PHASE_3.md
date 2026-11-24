@@ -1,5 +1,9 @@
 # Phase 3 dependency and migration plan
 
+Latest status (24 November 2026): recovered disposable Supabase and fresh default
+OpenNext Worker verification pass. GO for draft GitHub review, not hosted
+activation. The final-verification section below supersedes historical blockers.
+
 Base: operational-foundation 73647e5. Local-only implementation; no hosted SQL,
 email activation, deployment or indexing permission.
 
@@ -389,3 +393,88 @@ merge, deployment, genuine email, hosted SQL or DNS/indexing change authorized.
 Resume with safe recovery of the existing disposable guest and database,
 then actual Worker canonical comparison and relevant runtime checks. Do not
 change application code merely to make an unavailable environment appear green.
+
+## Final recovered-runtime verification — 24 November 2026
+
+Starting commit: `5fb25dcce143a257c03b4a6b1f9da5056fe529e5`.
+No application defect was reproduced and no application/configuration fix was
+necessary. This pass changes only the report. The owner authorized Ubuntu
+termination/restart conditional on avoiding unrelated critical work, and a push
+plus draft PR only after successful release checks.
+
+### Recovery performed without resets
+
+Ubuntu was the only running distro. All visible WSL launchers were Takween's
+Phase 2/3 Worker scripts or the diagnostic probe; no Docker/VS Code/terminal
+launchers indicated unrelated work. Guest process listing itself was unresponsive,
+so background Linux processes could not be audited directly.
+
+`wsl --terminate Ubuntu` completed successfully. The first relaunch failed with
+`Wsl/Service/CreateInstance/HCS_E_CONNECTION_TIMEOUT`. A subsequent inventory
+reported **no running distributions**. With no remaining distro workload, an
+idle utility-VM `wsl --shutdown` followed by Ubuntu relaunch restored execution.
+Windows services were not restarted. Deeper read-only `hcsdiag list` was denied
+for insufficient privileges; no administrator groups or permissions were changed.
+
+Pinned Supabase CLI 3.2.0 resumed the existing `takween-phase2` native stack from
+its saved directory and data. No distro reinstall, VHD manipulation, database
+reset, dependency reinstall or extra cleanup was performed. The existing enquiry
+records were present before test fixtures were added. Installed Linux dependencies
+and semantic lockfile matched current tracked source before building.
+
+Readiness checks independently confirmed PostgreSQL queries, Auth HTTP 200 and
+real PostgREST anonymous owner-RPC denial (HTTP 401 / code 42501). Runtime status
+and credentials were captured only under ignored artifacts/final-phase3/.
+The integration runner verified existing migration hashes against the retained
+database; no hosted migration or destructive schema action occurred.
+
+### Fresh verification evidence
+
+| Check | Result |
+| --- | --- |
+| ESLint / TypeScript | Passed, fresh execution. |
+| Unit tests | 70 passed: 29 existing + 41 operational; no failures/skips. |
+| Real local Supabase integration | All 16 groups passed, including actual Auth/MFA/AAL2, RLS, concurrent quotation/order retries, rollback, stale production writes and notification fencing with mocked provider transport. |
+| Default Linux Next.js/OpenNext build | Passed using unchanged build command and existing dependencies. Next compilation 32.3 seconds; TypeScript 23.8 seconds. |
+| Wrangler deployment dry run | Passed; 7628.76 KiB raw / 1823.55 KiB gzip. No upload/deployment. |
+| Actual public-mode Worker | HTTP 200, correct canonical and noindex,nofollow in response HTML and Chromium/WebKit DOM. |
+| Worker browser regressions | 4 passed: unchanged SEO/private-route/noindex and disabled-operational-gate cases in Chromium and WebKit iPhone emulation. |
+| Actual operational Worker | 4 passed: desktop/Pixel 7 emulated commercial journeys and anonymous/origin/size denial cases. Real local Auth/AAL2 and stored enquiries; PDF downloads, quotation states, orders, production observations and accessibility assertions pass. |
+| Mocked local Worker harness | Passed, native rate-limit behavior for both existing email and persistent-intake handlers. No genuine email. |
+| Browser secret scan | 19 files scanned; zero actual generated secret matches and zero server-only key-marker files. Exact PR diff also contains no generated secret matches. |
+| Protected public source | T, gear, scene adapter, homepage, styles, public form and existing Resend handler unchanged against operational-foundation. |
+
+Desktop/mobile operational projects waited outside individual tests for the
+unchanged real rate-limit window. Assertions/timeouts were not relaxed. The
+successful Windows 57-pass/13-skip suite was **not repeated**; these fresh browser
+checks exercise the actual recovered OpenNext Worker and cover the outstanding
+runtime boundary. Physical phones and physical Safari were not tested.
+
+The actual Worker response and Chromium/WebKit canonical all normalize to
+`https://takween-labs-preview.abdzeez000.workers.dev/`. The previous failing
+canonical cases pass unchanged. No current canonical application defect exists
+in these reproductions. The exact historical generated/served discrepancy is
+not conclusively established; environment/artifact recovery is not evidence for
+a particular stale-cache theory. No SEO code, URL or indexing assertion changed.
+
+Evidence under ignored artifacts/final-phase3/: service-health.json,
+integration.log, lint.log, typecheck.log, test.log, test-worker.log,
+opennext-build.log, dry-run.log, worker-response.html, worker-canonical.json,
+worker-browser.log and commercial-browser.log. Current synthetic owner screenshots
+and downloaded PDFs remain in artifacts/phase3/. Raw runtime/fixture/trace files
+contain private local test credentials and must not be committed or uploaded.
+
+### Release boundary
+
+GO for pushing this reviewed Phase 3 branch and opening a **draft PR targeting
+codex/operational-foundation**, conditional on checking hosted CI on the pushed
+SHA. No master/combined-release merge or production deployment is authorized.
+No production secrets, hosted migrations, bucket changes, genuine email sending,
+DNS or indexing activation. All tracked activation flags remain false.
+
+Hosted activation still needs business/privacy/tax/entity approval, owner recovery
+and backup procedures, actual hosted free-tier CPU verification, multilingual PDF
+font decisions, real-device owner testing and an approved Resend/Gmail delivery
+test. The existing 11 moderate dependency advisories are not resolved by this
+environment recovery; no high/critical were reported in the prior audit. No
+exactly-once email or production-readiness guarantee is claimed.
