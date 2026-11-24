@@ -1,3 +1,5 @@
 import Link from "next/link";
+import type {Metadata} from "next";
+export const metadata:Metadata={title:"Order tracking outline",description:"Order tracking is planned and is not available in this preview.",robots:{index:false,follow:false},openGraph:null,twitter:null};
 import {SectionHeading} from "@/components/ui";
 export default function TrackingPreview(){return <main id="main-content" className="shell section narrow-page"><Link className="text-link" href="/">← Return to the studio</Link><SectionHeading eyebrow="ORDER TRACKING / PLANNED" title="Your part. Its next step.">Tracking will become available after the ordering system is implemented. This preview does not accept order numbers or display customer records.</SectionHeading><p className="notice">Future tracking access will require verification. Sequential or guessable order numbers will not grant access.</p></main>;}

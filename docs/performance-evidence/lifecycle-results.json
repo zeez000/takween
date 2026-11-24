@@ -1,0 +1,30 @@
+[
+  {
+    "variant": "before",
+    "initialContexts": 4,
+    "finalContexts": 9,
+    "returnReadyMs": [
+      2799.6883000000007,
+      2843.888999999999,
+      2828.8513000000003,
+      2723.8837999999996,
+      2801.9068000000007
+    ],
+    "heapBefore": 7809980,
+    "heapAfter": 9859284
+  },
+  {
+    "variant": "after",
+    "initialContexts": 4,
+    "finalContexts": 4,
+    "returnReadyMs": [
+      2098.279200000001,
+      2232.424700000003,
+      2417.7992999999988,
+      2302.2078000000038,
+      2189.6324000000022
+    ],
+    "heapBefore": 7385024,
+    "heapAfter": 8828844
+  }
+]

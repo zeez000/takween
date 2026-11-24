@@ -1,7 +1,18 @@
 "use client";
-import {motion,useReducedMotion} from "motion/react";
+import {useEffect,useRef} from "react";
 import type {ReactNode} from "react";
 export function Reveal({children}:{children:ReactNode}) {
-  const reduce=useReducedMotion();
-  return <motion.div initial={false} whileInView={reduce?{opacity:1,y:0}:{opacity:[.65,1],y:[16,0]}} viewport={{once:true,amount:.08}} transition={{duration:reduce?0:.65,ease:"easeOut"}} className="reveal">{children}</motion.div>;
+  const ref=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    const element=ref.current;
+    if(!element || !("IntersectionObserver" in window))return;
+    const observer=new IntersectionObserver(([entry])=>{
+      if(!entry.isIntersecting || entry.intersectionRatio<.08)return;
+      element.classList.add("reveal-entered");
+      observer.disconnect();
+    },{threshold:.08});
+    observer.observe(element);
+    return ()=>observer.disconnect();
+  },[]);
+  return <div ref={ref} className="reveal">{children}</div>;
 }

@@ -1,0 +1,36 @@
+# Copy into a new, unlinked disposable project's supabase/config.toml.
+# Never use `link`, `db push` or hosted targets for these tests.
+project_id = "takween-phase2-local-only"
+[experimental]
+stack = true
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+major_version = 17
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:8797"
+enable_signup = false
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+[auth.sms]
+enabled = false
+[storage]
+enabled = false
+[studio]
+enabled = false
+[realtime]
+enabled = false
+[analytics]
+enabled = false
+[edge_runtime]
+enabled = false

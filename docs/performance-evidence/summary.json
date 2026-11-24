@@ -1,0 +1,525 @@
+{
+  "lighthouseVersion": "13.6.0",
+  "renderer": "ANGLE SwiftShader software WebGL",
+  "method": "Alternating before/after order; independent cold browser profiles. No physical devices. All earlier experiment batches retained.",
+  "samples": [
+    {
+      "stage": "before",
+      "device": "mobile",
+      "sample": 1,
+      "score": 50,
+      "lcpMs": 5675.055,
+      "tbtMs": 2604,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2038.5,
+      "warnings": []
+    },
+    {
+      "stage": "before",
+      "device": "mobile",
+      "sample": 2,
+      "score": 52,
+      "lcpMs": 5046.6178,
+      "tbtMs": 2764,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1352,
+      "warnings": []
+    },
+    {
+      "stage": "before",
+      "device": "mobile",
+      "sample": 3,
+      "score": 47,
+      "lcpMs": 6665.6966999999995,
+      "tbtMs": 3277,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1636,
+      "warnings": []
+    },
+    {
+      "stage": "before",
+      "device": "desktop",
+      "sample": 1,
+      "score": 71,
+      "lcpMs": 292.67805000000004,
+      "tbtMs": 845.5000000000001,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1638.5,
+      "warnings": []
+    },
+    {
+      "stage": "before",
+      "device": "desktop",
+      "sample": 2,
+      "score": 81,
+      "lcpMs": 1199.14045,
+      "tbtMs": 367,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 2182,
+      "warnings": []
+    },
+    {
+      "stage": "before",
+      "device": "desktop",
+      "sample": 3,
+      "score": 76,
+      "lcpMs": 1204.733,
+      "tbtMs": 482.4999999999999,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 2200,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "mobile",
+      "sample": 1,
+      "score": 48,
+      "lcpMs": 6534.6594,
+      "tbtMs": 3126,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2292,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "mobile",
+      "sample": 2,
+      "score": 49,
+      "lcpMs": 5824.566,
+      "tbtMs": 2728,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2248,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "mobile",
+      "sample": 3,
+      "score": 47,
+      "lcpMs": 6506.954999999999,
+      "tbtMs": 3158.9999999999995,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2220,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "desktop",
+      "sample": 1,
+      "score": 61,
+      "lcpMs": 1941.7690000000002,
+      "tbtMs": 1117.0000000000002,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1951.5,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "desktop",
+      "sample": 2,
+      "score": 74,
+      "lcpMs": 1280.82815,
+      "tbtMs": 516,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 2213.5,
+      "warnings": []
+    },
+    {
+      "stage": "shader-candidate",
+      "device": "desktop",
+      "sample": 3,
+      "score": 61,
+      "lcpMs": 1918.2033499999998,
+      "tbtMs": 1053,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1799,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "mobile",
+      "sample": 1,
+      "score": 50,
+      "lcpMs": 5670.60245,
+      "tbtMs": 2461.5,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2255,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "mobile",
+      "sample": 2,
+      "score": 48,
+      "lcpMs": 6279.316,
+      "tbtMs": 3175,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2158.5,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "mobile",
+      "sample": 3,
+      "score": 48,
+      "lcpMs": 6253.16545,
+      "tbtMs": 3311.9999999999995,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2111.5,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "desktop",
+      "sample": 1,
+      "score": 65,
+      "lcpMs": 1415.9027500000002,
+      "tbtMs": 967,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1320.5,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "desktop",
+      "sample": 2,
+      "score": 71,
+      "lcpMs": 1313.53455,
+      "tbtMs": 611,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1198.5,
+      "warnings": []
+    },
+    {
+      "stage": "after",
+      "device": "desktop",
+      "sample": 3,
+      "score": 73,
+      "lcpMs": 252.92129999999997,
+      "tbtMs": 733,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1470,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "mobile",
+      "sample": 1,
+      "score": 47,
+      "lcpMs": 6720.204999999999,
+      "tbtMs": 3075.4999999999995,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2320,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "mobile",
+      "sample": 2,
+      "score": 72,
+      "lcpMs": 908.6500000000001,
+      "tbtMs": 2066.0000000000005,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2280,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "mobile",
+      "sample": 3,
+      "score": 50,
+      "lcpMs": 5677.017,
+      "tbtMs": 2484,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2244,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "desktop",
+      "sample": 1,
+      "score": 82,
+      "lcpMs": 1249.06445,
+      "tbtMs": 337.5,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 2277,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "desktop",
+      "sample": 2,
+      "score": 78,
+      "lcpMs": 1183.8746499999997,
+      "tbtMs": 432.0000000000001,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1903,
+      "warnings": []
+    },
+    {
+      "stage": "lean-canvas",
+      "device": "desktop",
+      "sample": 3,
+      "score": 69,
+      "lcpMs": 353.96895,
+      "tbtMs": 875.9999999999999,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1382,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "mobile",
+      "sample": 1,
+      "score": 40,
+      "lcpMs": 9954.524000000001,
+      "tbtMs": 11011.5,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 2009.5,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "mobile",
+      "sample": 2,
+      "score": 49,
+      "lcpMs": 4618.656900000001,
+      "tbtMs": 9052,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1914.5,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "mobile",
+      "sample": 3,
+      "score": 43,
+      "lcpMs": 7317.823700000001,
+      "tbtMs": 8831.5,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1854.5,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "desktop",
+      "sample": 1,
+      "score": 46,
+      "lcpMs": 3279.1052,
+      "tbtMs": 3448.9999999999995,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1839.5,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "desktop",
+      "sample": 2,
+      "score": 43,
+      "lcpMs": 3554.447,
+      "tbtMs": 3893.5,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1602,
+      "warnings": []
+    },
+    {
+      "stage": "final",
+      "device": "desktop",
+      "sample": 3,
+      "score": 43,
+      "lcpMs": 3700.46,
+      "tbtMs": 3754.0000000000005,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1032,
+      "warnings": []
+    }
+  ],
+  "paired": [
+    {
+      "variant": "before",
+      "device": "mobile",
+      "sample": 1,
+      "score": 36,
+      "lcpMs": 14473.017749999999,
+      "tbtMs": 16937.5,
+      "cls": 0,
+      "benchmarkIndex": 443.5,
+      "warnings": [
+        "The tested device appears to have a slower CPU than  Lighthouse expects. This can negatively affect your performance score. Learn more about [calibrating an appropriate CPU slowdown multiplier](https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md#cpu-throttling)."
+      ]
+    },
+    {
+      "variant": "before",
+      "device": "mobile",
+      "sample": 2,
+      "score": 38,
+      "lcpMs": 15755.849999999999,
+      "tbtMs": 17536.5,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1354,
+      "warnings": []
+    },
+    {
+      "variant": "before",
+      "device": "mobile",
+      "sample": 3,
+      "score": 39,
+      "lcpMs": 8617.81825,
+      "tbtMs": 13078,
+      "cls": 0,
+      "benchmarkIndex": 1330.5,
+      "warnings": []
+    },
+    {
+      "variant": "before",
+      "device": "desktop",
+      "sample": 1,
+      "score": 46,
+      "lcpMs": 3256,
+      "tbtMs": 3978.9999999999995,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 892,
+      "warnings": []
+    },
+    {
+      "variant": "before",
+      "device": "desktop",
+      "sample": 2,
+      "score": 63,
+      "lcpMs": 312.45435,
+      "tbtMs": 4195,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 780,
+      "warnings": []
+    },
+    {
+      "variant": "before",
+      "device": "desktop",
+      "sample": 3,
+      "score": 46,
+      "lcpMs": 3228.25,
+      "tbtMs": 2968.5,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1134.5,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "mobile",
+      "sample": 1,
+      "score": 38,
+      "lcpMs": 12042.744499999999,
+      "tbtMs": 14034.499999999998,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1113.5,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "mobile",
+      "sample": 2,
+      "score": 39,
+      "lcpMs": 11708.967,
+      "tbtMs": 12515,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1844,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "mobile",
+      "sample": 3,
+      "score": 38,
+      "lcpMs": 8066.83405,
+      "tbtMs": 12769.500000000002,
+      "cls": 0.01181615993300469,
+      "benchmarkIndex": 1176.5,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "desktop",
+      "sample": 1,
+      "score": 42,
+      "lcpMs": 4018.6099999999997,
+      "tbtMs": 3499.5,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1526.5,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "desktop",
+      "sample": 2,
+      "score": 64,
+      "lcpMs": 321.48699999999997,
+      "tbtMs": 2193.5,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1314.5,
+      "warnings": []
+    },
+    {
+      "variant": "after",
+      "device": "desktop",
+      "sample": 3,
+      "score": 49,
+      "lcpMs": 2908.317,
+      "tbtMs": 2292,
+      "cls": 0.0005336113894208859,
+      "benchmarkIndex": 1550.5,
+      "warnings": []
+    }
+  ],
+  "medians": [
+    {
+      "variant": "before",
+      "device": "mobile",
+      "score": 38,
+      "lcpMs": 14473.017749999999,
+      "tbtMs": 16937.5,
+      "cls": 0
+    },
+    {
+      "variant": "before",
+      "device": "desktop",
+      "score": 46,
+      "lcpMs": 3228.25,
+      "tbtMs": 3978.9999999999995,
+      "cls": 0.0005336113894208859
+    },
+    {
+      "variant": "after",
+      "device": "mobile",
+      "score": 38,
+      "lcpMs": 11708.967,
+      "tbtMs": 12769.500000000002,
+      "cls": 0.01181615993300469
+    },
+    {
+      "variant": "after",
+      "device": "desktop",
+      "score": 49,
+      "lcpMs": 2908.317,
+      "tbtMs": 2292,
+      "cls": 0.0005336113894208859
+    }
+  ],
+  "directMedians": [
+    {
+      "variant": "before",
+      "heroReadyMs": 7000.60000000149,
+      "lcpMs": 1908,
+      "tbtMs": 2937,
+      "decodedJavaScriptBytes": 1457253,
+      "transferredJavaScriptBytes": 414428
+    },
+    {
+      "variant": "after",
+      "heroReadyMs": 6350.20000000298,
+      "lcpMs": 1224,
+      "tbtMs": 2713,
+      "decodedJavaScriptBytes": 1278433,
+      "transferredJavaScriptBytes": 368964
+    }
+  ]
+}

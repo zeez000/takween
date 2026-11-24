@@ -1,0 +1,21 @@
+{
+  "lint": "pass",
+  "typecheck": "pass",
+  "unit": {
+    "passed": 27
+  },
+  "workerRateLimit": "pass; mocked provider; native local bindings",
+  "nextBuild": "pass; Linux Next 16.4.5 Turbopack",
+  "openNext": "pass; 1.20.16",
+  "wranglerDryRun": "pass; 4.158.0",
+  "browser": {
+    "startTime": "2026-11-22T08:09:19.549Z",
+    "duration": 154737.065,
+    "expected": 38,
+    "skipped": 8,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "providerDelivery": "unverified; real sending disabled",
+  "physicalDevices": "not tested"
+}

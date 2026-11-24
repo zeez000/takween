@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-22",
+  "runtime": "Next production, Windows Chromium headless, Lighthouse 13.6.0",
+  "url": "http://127.0.0.1:3110/#hero-title",
+  "samples": [
+    {
+      "mode": "mobile",
+      "sample": 1,
+      "score": 47,
+      "lcpMs": 6799.895,
+      "tbtMs": 3866,
+      "cls": 0.01181615993300469,
+      "warnings": []
+    },
+    {
+      "mode": "mobile",
+      "sample": 2,
+      "score": 45,
+      "lcpMs": 7356.866000000001,
+      "tbtMs": 4749.000000000002,
+      "cls": 0.01181615993300469,
+      "warnings": []
+    },
+    {
+      "mode": "mobile",
+      "sample": 3,
+      "score": 46,
+      "lcpMs": 6826.395,
+      "tbtMs": 3718.5,
+      "cls": 0.01181615993300469,
+      "warnings": []
+    },
+    {
+      "mode": "desktop",
+      "sample": 1,
+      "score": 73,
+      "lcpMs": 1342.709,
+      "tbtMs": 544,
+      "cls": 0.0005336113894208859,
+      "warnings": []
+    },
+    {
+      "mode": "desktop",
+      "sample": 2,
+      "score": 75,
+      "lcpMs": 1377.5621500000002,
+      "tbtMs": 486.4999999999999,
+      "cls": 0.0005336113894208859,
+      "warnings": []
+    },
+    {
+      "mode": "desktop",
+      "sample": 3,
+      "score": 77,
+      "lcpMs": 1195.973,
+      "tbtMs": 437,
+      "cls": 0.0005336113894208859,
+      "warnings": []
+    }
+  ]
+}

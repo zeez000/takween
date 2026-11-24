@@ -2,7 +2,8 @@
 /* The Three.js renderer deliberately mutates external GPU objects and shared ref state outside React rendering. */
 /* eslint-disable react-hooks/immutability */
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
+import { SceneCanvas as Canvas } from "@/components/scene-canvas";
 import { Environment, Lightformer } from "@react-three/drei";
 import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
