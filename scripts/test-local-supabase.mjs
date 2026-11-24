@@ -167,15 +167,77 @@ try{
   });
   await check('dispatcher uses real durable leases with mocked Resend, backoff and stable idempotency',async()=>{
     const id=randomUUID();await service.rpc('takween_submit_enquiry',{p_request_id:id,p_payload:payload});
-    const repo={async claim(){const r=await service.rpc('takween_claim_notification');assert.equal(r.error,null);return r.data;},
+    let claimed;
+    const repo={async claim(){const r=await service.rpc('takween_claim_notification');assert.equal(r.error,null);if(claimed)assert.equal(r.data?.id,claimed.id);else claimed=r.data;return r.data;},
       async finish(job,outcome,providerId){const r=await service.rpc('takween_finish_notification',{p_id:job.id,p_lease_token:job.leaseToken,p_outcome:outcome,p_provider_id:providerId??null});assert.equal(r.error,null);return r.data;}};
     const config={ENQUIRY_NOTIFICATIONS_ENABLED:'true',RESEND_API_KEY:'synthetic-only-not-a-key',RESEND_FROM_EMAIL:'local@example.invalid'};
     const keys=[];
     assert.equal((await dispatchNotification(config,repo,async(_input,init)=>{keys.push(new Headers(init.headers).get('idempotency-key'));return Response.json({},{status:429});})).status,'retry');
-    const job=(await db.query('select o.id from takween.notification_outbox o join takween.enquiries e on e.id=o.enquiry_id where e.request_id=$1',[id])).rows[0];
-    assert.ok(job);await db.query('update takween.notification_outbox set next_attempt_at=now() where id=$1',[job.id]);
+    // Earlier browser runs may leave other synthetic pending jobs. Exercise the
+    // job actually claimed, and make that same retry due before other jobs.
+    const job=claimed;assert.ok(job);await db.query("update takween.notification_outbox set next_attempt_at='2000-01-01' where id=$1",[job.id]);
     assert.equal((await dispatchNotification(config,repo,async(_input,init)=>{keys.push(new Headers(init.headers).get('idempotency-key'));return Response.json({id:'synthetic-mock-accepted'});})).status,'accepted');
-    assert.equal(keys[0],keys[1]);assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:id,p_payload:payload})).data[0].notification_status,'accepted');
+    assert.equal(keys[0],keys[1]);assert.equal((await db.query('select state from takween.notification_outbox where id=$1',[job.id])).rows[0].state,'accepted');
+  });
+  await check('phase3 real Auth denies commercial data and mutations without owner AAL2',async()=>{
+    const aal1=await owner.freshAal1();
+    for(const c of [client(),ordinary.c,aal1]){
+      for(const rpc of ['takween_quote_command','takween_order_command'])assert.ok((await c.rpc(rpc,{p_request_id:randomUUID(),p_payload:{action:'create'}})).error);
+      assert.ok((await c.rpc('takween_commercial_list',{p_kind:'orders'})).error);
+    }
+  });
+  await check('phase3 concurrent quote requests, rollback, revisions and order deduplication use real PostgREST',async()=>{
+    const request=randomUUID();assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:request,p_payload:payload})).error,null);
+    const enquiry=(await db.query('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;
+    const nonce=randomUUID(),body={action:'create',enquiryId:enquiry};
+    const results=await Promise.all(Array.from({length:8},()=>owner.c.rpc('takween_quote_command',{p_request_id:nonce,p_payload:body})));
+    for(const r of results)assert.equal(r.error,null);assert.equal(new Set(results.map(r=>r.data.id)).size,1);const id=results[0].data.id;
+    let version=1;
+    const invoke=async(rpc,payload,id=randomUUID())=>{const r=await owner.c.rpc(rpc,{p_request_id:id,p_payload:payload});assert.equal(r.error,null);return r.data;};
+    const saved={action:'save',id,version,entity:'Synthetic local only',terms:'Synthetic terms, no real offer',notes:'Local testing',validUntil:'2099-12-31',taxBps:125,items:[{description:'Synthetic part',material:'PLA',quantity:3,unitPaise:101}]};
+    version=(await invoke('takween_quote_command',saved)).version;
+    const invalid=await owner.c.rpc('takween_quote_command',{p_request_id:randomUUID(),p_payload:{...saved,version,items:[{description:'Bad',material:'PLA',quantity:-1,unitPaise:10}]}});assert.ok(invalid.error);
+    const items=await db.query('select total_paise from takween.quotation_items where quotation_id=$1',[id]);assert.equal(Number(items.rows[0].total_paise),303);
+    for(const state of ['approved','sent','accepted'])version=(await invoke('takween_quote_command',{action:'transition',id,version,state,evidence:'Synthetic manual decision'})).version;
+    const orderNonce=randomUUID(),orderBody={action:'create',quotationId:id,note:'Synthetic order'};
+    const orders=await Promise.all(Array.from({length:8},()=>owner.c.rpc('takween_order_command',{p_request_id:orderNonce,p_payload:orderBody})));
+    for(const r of orders)assert.equal(r.error,null);assert.equal(new Set(orders.map(r=>r.data.id)).size,1);
+    assert.ok((await owner.c.rpc('takween_order_command',{p_request_id:randomUUID(),p_payload:orderBody})).error);
+    const order=orders[0].data;let orderVersion=order.version;
+    const observations=await Promise.all(['first','second'].map(note=>owner.c.rpc('takween_order_command',{p_request_id:randomUUID(),p_payload:{action:'production',id:order.id,version:orderVersion,note,material:'PLA',actualCostPaise:100,materialMg:1000,printMinutes:1}})));
+    assert.equal(observations.filter(r=>!r.error).length,1);orderVersion++;
+    for(const state of ['printing','quality_check','ready','completed'])orderVersion=(await invoke('takween_order_command',{action:'transition',id:order.id,version:orderVersion,state,note:'Synthetic progress'})).version;
+    const listed=await owner.c.rpc('takween_commercial_list',{p_kind:'orders',p_id:order.id});assert.equal(listed.error,null);assert.equal(listed.data[0].production.length,1);assert.equal(listed.data[0].state,'completed');
+    await db.query('begin');try{await db.query('set local role authenticated');await db.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:ordinary.id,aal:'aal2'})]);assert.equal((await db.query('select * from takween.production_entries')).rowCount,0);}finally{await db.query('rollback');}
+  });
+  await check('hardening: real concurrent revisions and acceptance never leave accepted plus newer draft',async()=>{
+    async function rpc(payload){return owner.c.rpc('takween_quote_command',{p_request_id:randomUUID(),p_payload:payload});}
+    async function sentQuote(){const request=randomUUID();assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:request,p_payload:payload})).error,null);const enquiry=(await db.query('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;const created=await rpc({action:'create',enquiryId:enquiry});assert.equal(created.error,null);let q=created.data;const save=await rpc({action:'save',id:q.id,version:q.version,entity:'Synthetic only',terms:'Synthetic terms',notes:'',taxBps:0,validUntil:'2099-12-31',items:[{description:'Synthetic part',material:'PLA',quantity:1,unitPaise:101}]});assert.equal(save.error,null);q=save.data;for(const state of ['approved','sent']){const r=await rpc({action:'transition',id:q.id,version:q.version,state,evidence:'Synthetic evidence'});assert.equal(r.error,null);q=r.data;}return {enquiry,q};}
+    for(let n=0;n<4;n++){
+      const {enquiry,q}=await sentQuote();const operations=[{action:'create',enquiryId:enquiry},{action:'transition',id:q.id,version:q.version,state:'accepted',evidence:'Synthetic customer decision'}];if(n%2)operations.reverse();const results=await Promise.all(operations.map(rpc));assert.equal(results.filter(r=>!r.error).length,1);
+      const rows=(await db.query('select revision,state from takween.quotations where enquiry_id=$1 order by revision',[enquiry])).rows;const accepted=rows.filter(r=>r.state==='accepted');if(accepted.length){assert.equal(rows.length,1);assert.ok((await rpc({action:'create',enquiryId:enquiry})).error);}else{assert.equal(rows.length,2);assert.equal(rows[1].state,'draft');assert.ok((await rpc({action:'transition',id:q.id,version:q.version,state:'accepted',evidence:'Obsolete'})).error);}
+    }
+    const {enquiry,q}=await sentQuote();const revisions=await Promise.all(Array.from({length:8},()=>rpc({action:'create',enquiryId:enquiry})));assert.equal(revisions.filter(r=>!r.error).length,1);
+    const family=await owner.c.rpc('takween_commercial_list',{p_kind:'quotations',p_id:q.id});assert.equal(family.error,null);assert.equal(family.data[0].isSuperseded,true);assert.equal(family.data[0].latestRevision,2);
+    assert.equal(Number((await db.query("select count(*) n from takween.quotations where enquiry_id=$1 and state='draft'",[enquiry])).rows[0].n),1);
+  });
+  await check('hardening: real held-job retries, category restrictions and terminal history are consistent',async()=>{
+    for(const category of ['printing','fateen_machining']){
+      const request=randomUUID();const body=category==='printing'?payload:{...payload,category,material:'Owner review',process:'turning',referralConsent:true};assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:request,p_payload:body})).error,null);
+      const enquiry=(await db.query('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;
+      async function quote(p){const r=await owner.c.rpc('takween_quote_command',{p_request_id:randomUUID(),p_payload:p});assert.equal(r.error,null);return r.data;}
+      let q=await quote({action:'create',enquiryId:enquiry});q=await quote({action:'save',id:q.id,version:q.version,entity:'Synthetic only',terms:'Synthetic local terms',notes:'',taxBps:0,validUntil:'2099-12-31',items:[{description:'Synthetic service',material:'Review',quantity:1,unitPaise:100}]});for(const state of ['approved','sent','accepted'])q=await quote({action:'transition',id:q.id,version:q.version,state,evidence:'Synthetic evidence'});
+      async function order(p,id=randomUUID()){return owner.c.rpc('takween_order_command',{p_request_id:id,p_payload:p});}
+      const created=await order({action:'create',quotationId:q.id,note:'Synthetic order'});assert.equal(created.error,null);let o=created.data;
+      const held={action:'transition',id:o.id,version:o.version,state:'on_hold',note:'Synthetic hold'},nonce=randomUUID();const hold=await order(held,nonce);assert.equal(hold.error,null);assert.deepEqual((await order(held,nonce)).data,hold.data);o=hold.data;assert.ok((await order({...held,version:o.version})).error);
+      const work=category==='printing'?'printing':'machining';assert.ok((await order({action:'transition',id:o.id,version:o.version,state:work,note:'Held must resume queued'})).error);
+      for(const state of ['queued','designing',work,'quality_check','ready','completed']){
+        if(state===work)assert.ok((await order({action:'transition',id:o.id,version:o.version,state:work==='printing'?'machining':'printing',note:'Wrong category'})).error);
+        const r=await order({action:'transition',id:o.id,version:o.version,state,note:'Synthetic progress'});assert.equal(r.error,null);o=r.data;
+      }
+      assert.ok((await order({action:'transition',id:o.id,version:o.version,state:'queued',note:'Terminal cannot reopen'})).error);
+      assert.equal(Number((await db.query('select count(*) n from takween.order_events where order_id=$1',[o.id])).rows[0].n),8);
+    }
   });
   await mkdir('artifacts/phase2',{recursive:true});
   browserOwner.invites={};

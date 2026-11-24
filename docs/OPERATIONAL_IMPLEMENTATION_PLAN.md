@@ -1,6 +1,8 @@
 # Operational implementation: architecture and migration design
 
-Status: phases 1 and 2 implemented for local review behind disabled flags. Real
+Status: phases 1 and 2 implemented for local review behind disabled flags. Phase 3
+adds owner-only quotations, orders, production observations and local PDF exports;
+see OPERATIONAL_PHASE_3.md for verification and remaining release gates. Real
 disposable Supabase Auth, MFA, PostgREST, RLS and concurrency have now been tested.
 No hosted migrations, infrastructure changes or real sending enabled.
 Base: codex/combined-release, 5e3bee651dcc2e645c1a223971936f80d689cf80.
