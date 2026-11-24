@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
+import {orderTransitions} from '../src/lib/operations/commercial.ts';
 const db=new PGlite(); const owner=randomUUID(),ordinary=randomUUID();let enquiry:string,quote:string,version=1;
 async function identity(sub:string=owner,aal='aal2',role='authenticated'){
  await db.exec('reset role');await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub,aal})]);await db.exec(`set role ${role}`);
@@ -88,4 +89,22 @@ test('every Phase3 table denies anonymous access and private rows at AAL1/non-ow
  }
  await identity();await assert.rejects(db.query('select * from takween.commercial_requests'));
  for(const table of tables)await assert.rejects(db.query(`delete from takween.${table}`));
+});
+test('frontend and SQL transitions match all reachable states, holds, repeats and terminal states',async()=>{
+ const states=['queued','designing','printing','machining','quality_check','ready','completed','on_hold','cancelled'];let checked=0;
+ for(const category of ['printing','fateen_machining'])for(const state of states.filter(s=>s!==(category==='printing'?'machining':'printing')))for(const next of [...states,'unknown']){
+  await db.exec('reset role;begin');await db.query('update takween.orders set category=$1,state=$2,version=100 where id=$3',[category,state,order]);await db.exec('set local role authenticated');await db.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:owner,aal:'aal2'})]);
+  let allowed=false;try{await orderCommand({action:'transition',id:order,version:100,state:next,note:'Synthetic transition parity'});allowed=true;}catch{}finally{await db.exec('rollback');}
+  assert.equal(allowed,orderTransitions(state,category).includes(next),`${category}: ${state} -> ${next}`);checked++;
+ }
+ assert.equal(checked,160);await identity();
+});
+test('revision visibility reports approved, rejected and expired supersession without editing history',async()=>{
+ for(const target of ['approved','rejected','expired']){
+  await db.exec('reset role');const request=randomUUID();await db.query('select public.takween_submit_enquiry($1,$2)',[request,JSON.stringify({name:`Lifecycle ${target}`,email:'test@example.invalid',description:'Synthetic lifecycle case',quantity:1,material:'PLA',category:'printing',contactConsent:true,referralConsent:false,privacyVersion:'test'})]);const eid=(await db.query<{id:string}>('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;await identity();
+  const q=await command({action:'create',enquiryId:eid});let r=await command({...save(),id:q.id,version:q.version});r=await command({action:'transition',id:q.id,version:r.version,state:'approved',evidence:'Synthetic approval'});
+  if(target!=='approved'){r=await command({action:'transition',id:q.id,version:r.version,state:'sent',evidence:'Synthetic manual sending'});if(target==='expired'){await db.exec('reset role');await db.query("update takween.quotations set valid_until=current_date-1 where id=$1",[q.id]);await identity();}r=await command({action:'transition',id:q.id,version:r.version,state:target,evidence:'Synthetic decision'});}
+  const newQ=await command({action:'create',enquiryId:eid});await assert.rejects(command({action:'create',enquiryId:eid}));await assert.rejects(command({action:'transition',id:q.id,version:r.version,state:target==='approved'?'sent':'accepted',evidence:'Obsolete offer'}));await assert.rejects(command({...save(),id:q.id,version:r.version}));
+  const rows=(await db.query<{r:{id:string;isSuperseded:boolean;latestRevision:number;state:string}[]}>('select public.takween_commercial_list($1,$2) r',['quotations',`Lifecycle ${target}`])).rows[0].r;const old=rows.find(v=>v.id===q.id)!;assert.equal(old.state,target);assert.equal(old.isSuperseded,true);assert.equal(old.latestRevision,2);assert.equal(rows.find(v=>v.id===newQ.id)!.isSuperseded,false);
+ }
 });

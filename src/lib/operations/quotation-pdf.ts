@@ -1,9 +1,10 @@
 import {PDFDocument,rgb,type PDFPage} from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {quotationFont} from './quotation-font.ts';
-import {money,type Quotation} from './commercial.ts';
+import {money,currentQuotation,quotationRevisionLabel,type Quotation} from './commercial.ts';
 /** Owner-only on-demand document. No links, scripts, attachments or external IO. */
 export async function quotationPdf(q:Quotation){
+ if(!currentQuotation(q)&&q.isSuperseded!==true)throw Error('Quotation revision status unavailable');
  const doc=await PDFDocument.create();doc.registerFontkit(fontkit);
  const font=await doc.embedFont(Uint8Array.from(atob(quotationFont),c=>c.charCodeAt(0)),{subset:true});
  doc.setTitle(`TAKWEEN LABS quotation ${q.reference} revision ${q.revision}`);doc.setAuthor('TAKWEEN LABS');
@@ -21,7 +22,7 @@ export async function quotationPdf(q:Quotation){
   }
  }
  function paint(line:string,size:number){if(y<60)newPage();page.drawText(line,{x:40,y,size,font,color:rgb(.08,.08,.1)});y-=size+6;}
- newPage();text(`${q.reference} | Revision ${q.revision}`,13);text(`State: ${q.state.toUpperCase()}${q.state==='draft'?' - NOT AN ISSUED QUOTATION':''}`);
+ newPage();text(`${q.reference} | Revision ${q.revision}`,13);text(quotationRevisionLabel(q),12);if(q.isSuperseded)text('NOT A CURRENT OFFER - retained for reference only',12);text(`State: ${q.state.toUpperCase()}${q.state==='draft'?' - NOT AN ISSUED QUOTATION':''}`);
  text(`Contracting entity: ${q.entity||'NOT SET - DRAFT'}`);text(`Customer: ${q.customer_snapshot.name}`);text(`Email: ${q.customer_snapshot.email}`);
  if(q.customer_snapshot.phone)text(`Contact: ${q.customer_snapshot.phone}`);
  text(`Enquiry: ${q.enquiryReference}`);text(`Valid until: ${q.valid_until??'NOT SET - DRAFT'}`);y-=10;

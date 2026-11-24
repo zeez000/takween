@@ -478,3 +478,164 @@ font decisions, real-device owner testing and an approved Resend/Gmail delivery
 test. The existing 11 moderate dependency advisories are not resolved by this
 environment recovery; no high/critical were reported in the prior audit. No
 exactly-once email or production-readiness guarantee is claimed.
+
+## Final code hardening - 24 November 2026
+
+This review starts from `fbce3956273cc04976fd773a03c44aada4195639` on
+`codex/operational-phase-3`. It supplements the recovery evidence above; no
+homepage, layered T, original gear, styles, public enquiry form, existing Resend
+implementation or activation flag was changed. Migrations 001-010 are untouched.
+
+### Confirmed findings and fixes
+
+1. **Late private responses could restore records after hiding/logout.** A browser
+   reproduction held a commercial response while hiding the document, then
+   released it after returning. The old implementation rendered the private
+   sentinel (expected zero, received one). Commercial and enquiry requests now
+   carry view/session generations as well as abort signals. Hide, logout,
+   authorization denial and unmount invalidate outstanding work. Response parsing,
+   state updates, PDF completion and finalizers check their original generation;
+   an old completion cannot overwrite a newer view or clear its busy state.
+   Logout clears private UI before waiting for remote revocation, but confirms
+   `Signed out.` only after revocation succeeds. Tests deliberately ignore abort
+   to prove generation checks, rather than cancellation alone, protect the view.
+2. **A non-JSON 401/403 bypassed private-view cleanup.** An HTML 403 reproduced
+   previously loaded records remaining visible. Both owner API clients now check
+   current-request identity and authorization status before decoding a body, and
+   clear the entire workspace on current authorization failure. A stale denial
+   cannot clear a newer session. Separate browser regressions exercise commercial
+   and inbox HTML denials. Existing same-origin, limiter, private response headers,
+   AAL2 and RLS enforcement are unchanged.
+3. **Superseded offers were ambiguous in UI/PDF.** Additive migration
+   `202611240011_quotation_revision_visibility.sql` replaces only the read-only,
+   owner-authorized commercial list function, adding `isSuperseded` and
+   `latestRevision`. These are computed across the whole enquiry family, including
+   when loading one historical ID or a filtered page. Issued records/history are
+   not modified. Obsolete offers display their latest revision and lose advance,
+   edit, new-revision and order-conversion controls. Fresh authorized PDF downloads
+   include `SUPERSEDED` and `NOT A CURRENT OFFER - retained for reference only`.
+   Missing revision metadata fails closed for issuing controls/PDF generation.
+   Already downloaded documents cannot be revoked or relabelled retrospectively;
+   owner-approved withdrawal/customer communication remains a business decision.
+
+### Rules verified and left unchanged
+
+- Frontend `orderTransitions` and migration 009 agree in **160** reachable
+  category/source/target combinations, including holds, same-state repeats,
+  invalid targets, category-specific work and terminal states. Unreachable source
+  combinations (printing state on a machining order, or vice versa) are not
+  treated as valid workflows. No transition rule was rewritten.
+- Database-backed tests create revisions after approval, rejection and expiry;
+  reject a second draft, obsolete advancement, issued-content editing and
+  accepted supersession. Historical states remain unchanged.
+- Actual local Auth/PostgREST concurrency tests race revision creation against
+  acceptance four times and eight distinct revision commands against each other.
+  Exactly one mutually exclusive outcome/draft results. Existing row locks,
+  optimistic versions, idempotency receipts, rollback and unique order constraints
+  already protect these operations; no speculative concurrency rewrite was made.
+- Real held-job tests cover same-request replay, new-request repeats, prohibited
+  direct hold-to-work jumps, category restrictions and terminal history counts.
+
+### Migration, deployment order and rollback
+
+Migration 011 was applied **only to the existing disposable local Supabase** by
+the integration runner. No hosted SQL, infrastructure, auth setting or bucket
+was touched. The function remains `security invoker`, empty `search_path`, and
+requires the existing allowlisted owner/AAL2 check plus underlying RLS. EXECUTE
+is explicitly denied to PUBLIC/anon/service_role and granted to authenticated
+users, whose owner authorization is still checked inside the function.
+
+After separate hosted approval, apply 011 before activating the corresponding
+owner client. A new client against the old function safely hides issuing actions
+and rejects PDFs lacking metadata. For rollback, restore the previous application
+commit; leaving the additive metadata function in place is compatible with the
+old client. If database rollback is necessary, use a separately reviewed forward
+compensating migration restoring the exact 009 list function and grants. Do not
+delete history, rewrite migration hashes or blindly undo production data.
+No environment variable or privileged browser credential was added.
+
+### Dependency exposure review
+
+Fresh `npm audit --json`: **11 moderate, zero high/critical**. `--omit=dev` reports
+five moderate installed-production entries; the other six are dev-tool paths.
+These are propagated package findings from two root advisories, not eleven
+independent remotely exploitable defects:
+
+| Root advisory | Installed affected versions / paths | Applicability and decision |
+| --- | --- | --- |
+| [GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4), CVE-2026-118773; published 2026-10-27, updated 2026-10-30 | glob 10.5.0 under OpenNext and node-minify; affected 9 through 14.0.1; fix 14.0.2 | Cancellation can leave filesystem traversal running. Current calls use fixed build filesystem patterns, not customer input or cancellation as a security/cost boundary. Residual build/CI resource-exhaustion risk remains. |
+| [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249), CVE-2026-118764; published 2026-10-27, updated 2026-11-04 | minimatch 9.0.9 via glob and 10.2.6 via TypeScript ESLint; affected >=7 <11.0.1; fix 11.0.1 | Requires attacker-controlled glob patterns and high-level optimization. Current source has no direct glob/minimatch use and tool patterns come from repository/build configuration. Not identified as a public request-path vulnerability. Root minimatch 3.1.5 is outside this advisory's range. |
+
+Installed production classification includes OpenNext's **build CLI**, so it does
+not by itself prove code runs in the deployed Worker. Scanning 1,165 generated
+JS/mjs files found no affected npm module-path markers; vendored/minified marker
+absence is supporting evidence, not a formal proof of absence. Source and CLI
+callsite review found no customer-controlled reachability. Untrusted repository
+changes/configuration still require review; CI has read-only repository permissions,
+no production credentials and a 25-minute job limit.
+
+The patched glob/minimatch majors fall outside current compatible ranges.
+`npm audit fix --force` proposes an unsuitable OpenNext 0.3.0 downgrade. No forced
+override, adapter downgrade, broad upgrade or lockfile change was made. Track
+upstream compatible fixes and reassess before accepting untrusted glob patterns,
+archives or file-processing features. These advisories remain open, rather than
+being presented as fixed or conclusively unreachable.
+
+### Fresh verification
+
+- Lint and TypeScript: passed. Unit tests: **76 passed** (29 existing + 47
+  operational); no failures/skips. Includes transition matrix, request-scope
+  invalidation and decoded PDF privacy/supersession checks.
+- Actual disposable Supabase: **18 integration groups passed**, using real Auth,
+  MFA, PostgREST and RLS; additional concurrency and held-job groups above.
+  Notification provider transport remains mocked. Fresh invitation fixtures were
+  generated for the final browser run because invitation links are single-use.
+- Default Linux Next.js/OpenNext production build and Wrangler deployment dry
+  run passed using existing matching dependencies; no install or deployment.
+  Worker bundle 7633.66 KiB raw / 1824.70 KiB gzip.
+- Actual local public Worker full Chromium/WebKit suite: **57 passed, 13 existing
+  conditional skips**, including canonical/noindex, animation and disabled-route
+  regressions. No public behavior or test timeout/skip was changed.
+- Actual operational Worker: all desktop cases and both projects' eight new race
+  regressions passed in the final runner. The mobile commercial journey was
+  interrupted by host Modern Standby, not counted as a pass: its trace records
+  a roughly 597-second click gap and Windows Kernel-Power events 506/507 confirm
+  standby during the run. Both mobile commercial cases passed unchanged on the
+  targeted rerun (23.7 seconds). The pre-standby invitation fixture also failed
+  during the remaining owner run; a freshly generated synthetic local invitation
+  restored that case without changing Auth settings or assertions. All five
+  mobile owner cases then passed unchanged (30.3 seconds). Across the original
+  groups and these recovery reruns, **all 30 unique operational browser cases
+  passed**, including 16 race/supersession cases. This is not a claim that the
+  interrupted first aggregate invocation passed; its logs remain retained.
+- Both targeted HTML-denial browser regressions passed after their confirmed
+  failure before the fix. Intermediate private-view tests also passed; final
+  full-run results are recorded separately to avoid double counting.
+- Native local Worker harness passed with existing rate-limit bindings. Built
+  browser chunks: 19 files, zero actual local secret matches and zero server-only
+  key-marker files. Raw fixture/status/trace files remain ignored and private.
+- Superseded synthetic quotation PDF rendered with Poppler and visually inspected:
+  label and warning readable, no overlap/clipping; decoded tests also verify
+  internal history/cost exclusion. No genuine customer records or emails used.
+
+Evidence: ignored `artifacts/phase3-hardening/` logs (`race-before.log`,
+`auth-html-before.log`, `auth-html-after.log`, `integration-final.log`,
+`operational-browser-final.log`, `mobile-commercial-recheck.log`,
+`mobile-owner-refreshed.log`, `trace-timings.log`, `standby-events.json`,
+`public-browser-full.log`, lint/typecheck/unit/
+Worker logs, audit JSONs), plus current `artifacts/final-phase3/` OpenNext/dry-run
+logs. Rendered synthetic PDF review is `superseded-quotation.png`; screenshots
+from owner/commercial journeys are in `artifacts/phase2/` and `artifacts/phase3/`.
+Private browser traces/fixtures must not be uploaded to GitHub.
+
+### Remaining gates
+
+See [PHASE_3_BUSINESS_DECISIONS.md](PHASE_3_BUSINESS_DECISIONS.md) for all pending
+entity/GST/terms/acceptance/Fateen/retention-backup/terminal-correction/MFA-recovery
+decisions. No commercial policy, tax rate or Fateen authority is invented.
+Physical iPhone/Android testing, hosted limits/backup/recovery review,
+multilingual PDF support decisions and owner-approved real Resend/Gmail delivery
+remain outstanding. Browser mobile tests are emulation, not physical-device
+coverage. This hardening prepares draft PR #6 for review, not hosted activation.
+All operational/email/indexing flags remain false; no merge, deployment, hosted
+migration, real email, DNS or indexing change occurred.

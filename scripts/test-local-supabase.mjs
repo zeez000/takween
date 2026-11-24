@@ -210,6 +210,35 @@ try{
     const listed=await owner.c.rpc('takween_commercial_list',{p_kind:'orders',p_id:order.id});assert.equal(listed.error,null);assert.equal(listed.data[0].production.length,1);assert.equal(listed.data[0].state,'completed');
     await db.query('begin');try{await db.query('set local role authenticated');await db.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:ordinary.id,aal:'aal2'})]);assert.equal((await db.query('select * from takween.production_entries')).rowCount,0);}finally{await db.query('rollback');}
   });
+  await check('hardening: real concurrent revisions and acceptance never leave accepted plus newer draft',async()=>{
+    async function rpc(payload){return owner.c.rpc('takween_quote_command',{p_request_id:randomUUID(),p_payload:payload});}
+    async function sentQuote(){const request=randomUUID();assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:request,p_payload:payload})).error,null);const enquiry=(await db.query('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;const created=await rpc({action:'create',enquiryId:enquiry});assert.equal(created.error,null);let q=created.data;const save=await rpc({action:'save',id:q.id,version:q.version,entity:'Synthetic only',terms:'Synthetic terms',notes:'',taxBps:0,validUntil:'2099-12-31',items:[{description:'Synthetic part',material:'PLA',quantity:1,unitPaise:101}]});assert.equal(save.error,null);q=save.data;for(const state of ['approved','sent']){const r=await rpc({action:'transition',id:q.id,version:q.version,state,evidence:'Synthetic evidence'});assert.equal(r.error,null);q=r.data;}return {enquiry,q};}
+    for(let n=0;n<4;n++){
+      const {enquiry,q}=await sentQuote();const operations=[{action:'create',enquiryId:enquiry},{action:'transition',id:q.id,version:q.version,state:'accepted',evidence:'Synthetic customer decision'}];if(n%2)operations.reverse();const results=await Promise.all(operations.map(rpc));assert.equal(results.filter(r=>!r.error).length,1);
+      const rows=(await db.query('select revision,state from takween.quotations where enquiry_id=$1 order by revision',[enquiry])).rows;const accepted=rows.filter(r=>r.state==='accepted');if(accepted.length){assert.equal(rows.length,1);assert.ok((await rpc({action:'create',enquiryId:enquiry})).error);}else{assert.equal(rows.length,2);assert.equal(rows[1].state,'draft');assert.ok((await rpc({action:'transition',id:q.id,version:q.version,state:'accepted',evidence:'Obsolete'})).error);}
+    }
+    const {enquiry,q}=await sentQuote();const revisions=await Promise.all(Array.from({length:8},()=>rpc({action:'create',enquiryId:enquiry})));assert.equal(revisions.filter(r=>!r.error).length,1);
+    const family=await owner.c.rpc('takween_commercial_list',{p_kind:'quotations',p_id:q.id});assert.equal(family.error,null);assert.equal(family.data[0].isSuperseded,true);assert.equal(family.data[0].latestRevision,2);
+    assert.equal(Number((await db.query("select count(*) n from takween.quotations where enquiry_id=$1 and state='draft'",[enquiry])).rows[0].n),1);
+  });
+  await check('hardening: real held-job retries, category restrictions and terminal history are consistent',async()=>{
+    for(const category of ['printing','fateen_machining']){
+      const request=randomUUID();const body=category==='printing'?payload:{...payload,category,material:'Owner review',process:'turning',referralConsent:true};assert.equal((await service.rpc('takween_submit_enquiry',{p_request_id:request,p_payload:body})).error,null);
+      const enquiry=(await db.query('select id from takween.enquiries where request_id=$1',[request])).rows[0].id;
+      async function quote(p){const r=await owner.c.rpc('takween_quote_command',{p_request_id:randomUUID(),p_payload:p});assert.equal(r.error,null);return r.data;}
+      let q=await quote({action:'create',enquiryId:enquiry});q=await quote({action:'save',id:q.id,version:q.version,entity:'Synthetic only',terms:'Synthetic local terms',notes:'',taxBps:0,validUntil:'2099-12-31',items:[{description:'Synthetic service',material:'Review',quantity:1,unitPaise:100}]});for(const state of ['approved','sent','accepted'])q=await quote({action:'transition',id:q.id,version:q.version,state,evidence:'Synthetic evidence'});
+      async function order(p,id=randomUUID()){return owner.c.rpc('takween_order_command',{p_request_id:id,p_payload:p});}
+      const created=await order({action:'create',quotationId:q.id,note:'Synthetic order'});assert.equal(created.error,null);let o=created.data;
+      const held={action:'transition',id:o.id,version:o.version,state:'on_hold',note:'Synthetic hold'},nonce=randomUUID();const hold=await order(held,nonce);assert.equal(hold.error,null);assert.deepEqual((await order(held,nonce)).data,hold.data);o=hold.data;assert.ok((await order({...held,version:o.version})).error);
+      const work=category==='printing'?'printing':'machining';assert.ok((await order({action:'transition',id:o.id,version:o.version,state:work,note:'Held must resume queued'})).error);
+      for(const state of ['queued','designing',work,'quality_check','ready','completed']){
+        if(state===work)assert.ok((await order({action:'transition',id:o.id,version:o.version,state:work==='printing'?'machining':'printing',note:'Wrong category'})).error);
+        const r=await order({action:'transition',id:o.id,version:o.version,state,note:'Synthetic progress'});assert.equal(r.error,null);o=r.data;
+      }
+      assert.ok((await order({action:'transition',id:o.id,version:o.version,state:'queued',note:'Terminal cannot reopen'})).error);
+      assert.equal(Number((await db.query('select count(*) n from takween.order_events where order_id=$1',[o.id])).rows[0].n),8);
+    }
+  });
   await mkdir('artifacts/phase2',{recursive:true});
   browserOwner.invites={};
   for(const project of ['desktop','mobile']){

@@ -24,7 +24,7 @@ test('actual local owner sign-in MFA inbox note and logout',async({page})=>{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
   await page.evaluate(()=>{(document.activeElement as HTMLElement)?.blur();});
   await page.screenshot({path:`artifacts/phase2/owner-${test.info().project.name}.png`,fullPage:true});
-  await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page.getByLabel('Password',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page.getByLabel('Password',{exact:true})).toBeVisible();await expect(page.getByText('Signed out.',{exact:true})).toBeVisible();
   const denied=await page.request.post('/api/operational/workspace',{headers:{origin:new URL(page.url()).origin},data:{action:'inbox',search:'',category:'',offset:0}});expect(denied.status()).toBe(403);
 });
 test('real local persistent enquiry stores and never sends email',async({page})=>{
