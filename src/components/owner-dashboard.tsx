@@ -2,6 +2,7 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from 'react';
 import {createClient} from '@/lib/supabase/browser';
 import {CommercialWorkspace} from '@/components/commercial-workspace';
+import {BusinessWorkspace} from '@/components/business-workspace';
 import {createPrivateRequestScope,privateRequestSignal} from '@/lib/operations/private-requests';
 type Enquiry={id:string;reference:string;description:string;category:string;quantity:number;material:string;status:string;createdAt:string;
   process:string|null;referralConsent:boolean;privacyVersion:string;colour:string|null;dimensions:string|null;preferredDeadline:string|null;
@@ -61,6 +62,7 @@ export function OwnerDashboard(){
     </form>:<>
       <button className="button button-secondary" onClick={logout} disabled={busy}>Log out</button>
       <CommercialWorkspace enquiries={rows} securityScope={securityScope} onAccessDenied={clearPrivate}/>
+      <BusinessWorkspace securityScope={securityScope} onAccessDenied={clearPrivate}/>
       <form method="post" className="quote-form" onSubmit={e=>{e.preventDefault();void load()}}><label>Search enquiries<input value={search} maxLength={100} onChange={e=>setSearch(e.target.value)}/></label>
         <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}><option value="">All</option><option value="printing">3D printing</option><option value="fateen_machining">Fateen machining</option></select></label><button className="button" disabled={busy}>Search / refresh</button></form>
       <p>Enquiry inbox · {rows.length} records in this page</p>
