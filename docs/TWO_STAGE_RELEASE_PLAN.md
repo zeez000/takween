@@ -186,3 +186,4 @@ References:
 https://developers.cloudflare.com/workers/ci-cd/builds/ and
 https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/ ;
 https://supabase.com/docs/guides/deployment/branching/github-integration .
+Stage 1 update: both planned corrections are now implemented locally. See STAGE_1_RELEASE_CANDIDATE.md and HANDOFF.md for current results; the earlier NOT implemented wording above records the historical planning checkpoint. Production activation remains unauthorized.

@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-test.beforeEach(async({page})=>{await page.addInitScript(()=>sessionStorage.setItem('takween-entry-seen','1'));});
+test.beforeEach(async({page})=>{await page.route('**/api/operational/intake-config',r=>r.fulfill({json:{enabled:false,emailEnabled:true}}));await page.addInitScript(()=>sessionStorage.setItem('takween-entry-seen','1'));});
 test('email acceptance requires the explicit provider-backed contract and safe retry',async({page})=>{
  await page.goto('/');await page.getByLabel('Your name',{exact:true}).fill('Synthetic test');await page.getByLabel('Your email').fill('synthetic@example.invalid');await page.getByLabel('Tell us about your idea').fill('Synthetic browser enquiry only.');
  const ids:string[]=[];

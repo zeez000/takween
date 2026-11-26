@@ -208,7 +208,7 @@ test("hero context loss shows its static logo without blocking the enquiry",asyn
  await expect(page.locator('.hero canvas')).toHaveCount(0);
  await expect(page.getByRole('img',{name:'Red layered T monogram'})).toBeVisible();
  await page.locator('#quote').scrollIntoViewIfNeeded();
- await expect(page.getByLabel('Your name',{exact:true})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Email TAKWEEN LABS'})).toBeVisible();await expect(page.getByRole('link',{name:'Email TAKWEEN LABS'})).toHaveAttribute('href','mailto:takweenlabs.in@gmail.com');
 });
 
 test("high-DPI mobile rendering keeps the approved resolution cap through rotation",async({page,context},info)=>{

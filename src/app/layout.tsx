@@ -9,13 +9,14 @@ import "@fontsource/space-grotesk/latin-700.css";
 import "./globals.css";
 import "./cinematic.css";
 const seo = getSeoConfig();
+const socialImage={url:'/takween-social.png',width:1200,height:630,type:'image/png',alt:'TAKWEEN LABS red layered T emblem on graphite. You name it. We make it. Foundation preview.'};
 export const metadata:Metadata={
   metadataBase: seo.url ? new URL(seo.url) : undefined,
   title:{default:"TAKWEEN LABS | Custom 3D Printing in Bengaluru",template:"%s | TAKWEEN LABS"},
   description:site.description,
   robots:{index:seo.indexable,follow:seo.indexable},
-  openGraph:{type:"website",siteName:"TAKWEEN LABS",locale:"en_IN",title:"TAKWEEN LABS | Custom 3D Printing in Bengaluru",description:site.description,...(seo.url?{url:seo.url}:{})},
-  twitter:{card:"summary",title:"TAKWEEN LABS | Custom 3D Printing in Bengaluru",description:site.description}
+  openGraph:{type:"website",siteName:"TAKWEEN LABS",locale:"en_IN",title:"TAKWEEN LABS | Custom 3D Printing in Bengaluru",description:site.description,images:[socialImage],...(seo.url?{url:seo.url}:{})},
+  twitter:{card:"summary_large_image",title:"TAKWEEN LABS | Custom 3D Printing in Bengaluru",description:site.description,images:[{url:socialImage.url,alt:socialImage.alt}]}
 };
 export default function RootLayout({children}:{children:ReactNode}) {
   return <html lang="en"><body><a className="skip-link" href="#main-content">Skip to content</a>{children}</body></html>;
