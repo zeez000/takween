@@ -5,6 +5,11 @@ adds owner-only quotations, orders, production observations and local PDF export
 see OPERATIONAL_PHASE_3.md for verification and remaining release gates. Real
 disposable Supabase Auth, MFA, PostgREST, RLS and concurrency have now been tested.
 No hosted migrations, infrastructure changes or real sending enabled.
+26 November local business sprint extends owner operations with inventory,
+machines/maintenance, internal costing, scheduling, manual finance, private draft
+catalogue, summaries and contacts/exports. See BUSINESS_OPERATIONS_SPRINT.md for
+additive 012-015 migrations, verification and activation limits. Hosted preparation
+remains separately frozen at 001-011 (HOSTED_ACTIVATION_PACKAGE.md).
 Base: codex/combined-release, 5e3bee651dcc2e645c1a223971936f80d689cf80.
 Implementation branch: codex/operational-foundation.
 
