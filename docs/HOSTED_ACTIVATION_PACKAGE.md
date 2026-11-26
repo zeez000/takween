@@ -35,13 +35,25 @@ Global defaults remain broad: every future migration must repeat explicit grants
 revokes and security tests. Do not revoke global defaults indiscriminately or
 modify managed roles to make a dashboard warning disappear.
 
+## Completed Auth / Storage aggregate inspection
+
+Owner reports successful aggregate inspection on 26 November 2026: Auth users,
+identity rows, MFA factors, verified TOTP factors, Storage buckets, public buckets
+and object metadata rows are all **0**; bucket configuration is empty. Combined
+with the earlier catalog inventory, TAKWEEN is uninitialized with no identified
+Auth users or Storage objects. This is owner-provided evidence, not an independent
+agent execution, and does not prove all managed schemas contain no data.
+
+No repeat aggregate inspection is required during this preparation. If writes
+occur before the approved migration window, reconcile that change first.
+The minimal baseline and restore gate are in FRESH_HOSTED_BASELINE_RUNBOOK.md.
+There are no identified user accounts, MFA factors or object blobs to transfer.
+Preserve managed metadata, role grants/default privileges and project settings.
+
 ## Owner checks still required
 
-Run hosted-auth-storage-counts.sql manually with existing authorized SQL access.
-It returns only aggregate Auth/identity/MFA counts and hashed bucket identifiers,
-public flags, limits/MIME settings and object counts. No emails, tokens, IDs,
-filenames or object URLs. Existing data changes the required backup coverage;
-nonzero counts are not permission to delete/reset anything.
+The aggregate check above is complete. Do not rerun it merely to satisfy an old
+checklist. Retain the sanitized result privately with the baseline backup record.
 
 Approve the encrypted backup location/operator and recovery targets. Use free
 local disk + an existing/free encryption tool with private key/password custody;

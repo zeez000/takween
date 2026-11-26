@@ -6,7 +6,12 @@ Owner confirms all 18 sections executed read-only on PostgreSQL 17.11: no
 takween schema, inspected application objects/policies/functions or migration
 history table. Managed Supabase schemas and Storage triggers remain. Treat this
 as uninitialized TAKWEEN application state, NOT an empty project. Auth user and
-Storage contents remain unknown pending aggregate-only checks. Earlier access
+Storage aggregate inspection is now complete: the owner reports zero users,
+identities, MFA/TOTP factors, buckets/public buckets and object metadata rows,
+with empty bucket configuration. No identified Auth users or Storage objects
+need transfer; this does not establish that every managed schema is empty. See
+FRESH_HOSTED_BASELINE_RUNBOOK.md for the minimal baseline and restore procedure.
+Earlier access
 limitations below are historical; this new evidence is owner-provided, not an
 independent hosted execution by the agent.
 
