@@ -17,6 +17,26 @@ test('manual finance entries and reversal are append-only, retry safe and do not
  const report=(await list('reports'))[0];assert.equal(report.recordedIncomePaise,'10000');assert.equal(report.recordedExpensePaise,'0');assert.equal(report.recordedSurplusPaise,'10000');const job=(await list('job_costs')).find(r=>r.id===order)!;assert.equal(job.recorded_income_paise,'10000');assert.equal(job.recorded_expense_paise,'0');assert.equal(job.quoted_total_paise,'10000');
  await assert.rejects(db.exec('update takween.finance_entries set amount_paise=1'));await assert.rejects(command({action:'finance.create',kind:'expense',category:'other',amountPaise:-1,occurredOn:'2026-11-26',note:'Invalid'}));
 });
+test('one accepted order retains quote and estimate snapshots through failed print, reprint, completion and finance',async()=>{
+ const snapshot=(await db.query<{snapshot:unknown}>('select snapshot from takween.orders where id=$1',[order])).rows[0].snapshot;
+ const estimate=await command({action:'estimate.create',inputs:{materialMg:100000,pricePerKgPaise:100000,wasteBps:1000,watts:200,minutes:120,electricityPaisePerKwh:1000,laborMinutes:30,laborPaisePerHour:20000,overheadPaise:500,marginBps:2000},note:'Synthetic journey estimate'});
+ const machine=await command({action:'machine.create',name:'Journey machine',category:'printing',status:'active',nextService:null,note:'Synthetic'});
+ const booking=await command({action:'schedule.create',orderId:order,machineId:machine.id,estimateId:estimate.id,startAt:'2099-02-01T09:00:00Z',endAt:'2099-02-01T10:00:00Z',note:'Synthetic journey'});
+ let spool=await command({action:'material.create',name:'Journey spool',material:'PLA',colour:'red',pricePerKgPaise:100000,note:'Synthetic'});
+ spool=await command({action:'material.receive',id:spool.id,version:spool.version,quantityMg:1000000,note:'Synthetic stock'});
+ const consume={action:'material.consume',id:spool.id,version:spool.version,orderId:order,quantityMg:100000,note:'Failed first print'},nonce=randomUUID();spool=await command(consume,nonce);assert.deepEqual(await command(consume,nonce),spool);
+ let version=1;const transition=async(state:string)=>{const p={action:'transition',id:order,version,state,note:'Synthetic journey '+state};const r=(await db.query<{v:{version:number}}>('select public.takween_order_command($1,$2) v',[randomUUID(),JSON.stringify(p)])).rows[0].v;version=r.version;};
+ await transition('printing');await transition('quality_check');await transition('printing');
+ spool=await command({action:'material.consume',id:spool.id,version:spool.version,orderId:order,quantityMg:100000,note:'Actual reprint consumption'});
+ await transition('quality_check');await transition('ready');await transition('completed');
+ await command({action:'schedule.status',id:booking.id,version:1,status:'completed',note:'Completed reservation'});
+ await assert.rejects(command({action:'material.consume',id:spool.id,version:spool.version,orderId:order,quantityMg:1,note:'Terminal order denied'}));
+ assert.equal(Number((await db.query<{stock_mg:number}>('select stock_mg from takween.materials where id=$1',[spool.id])).rows[0].stock_mg),800000);
+ const job=(await list('job_costs')).find(r=>r.id===order)!;assert.equal(job.consumed_material_mg,'200000');assert.equal(job.recorded_expense_paise,'0');assert.equal(job.recorded_income_paise,'10000');assert.equal(job.quoted_total_paise,'10000');assert.equal(job.state,'completed');
+ assert.deepEqual((await db.query<{snapshot:unknown}>('select snapshot from takween.orders where id=$1',[order])).rows[0].snapshot,snapshot);
+ assert.deepEqual(job.estimate_snapshots,[{reservationId:booking.id,estimateId:estimate.id,basePaise:21900}]);
+ await assert.rejects(db.query('update takween.cost_estimates set result=$1 where id=$2',[JSON.stringify({basePaise:0}),estimate.id]));
+});
 test('scheduling, finance, reports and reference choices require allowlisted AAL2',async()=>{
  for(const [id,aal] of [[ordinary,'aal2'],[owner,'aal1']]){await identity(id,aal);for(const kind of ['scheduling','finance','reports','choices','job_costs'])await assert.rejects(list(kind));assert.equal((await db.query('select * from takween.finance_entries')).rows.length,0);await assert.rejects(command({action:'finance.reverse',id:randomUUID(),note:'Denied'}));}await identity();
 });
