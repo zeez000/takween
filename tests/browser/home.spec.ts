@@ -19,6 +19,7 @@ test("mobile menu supports touch navigation",async({page})=>{
  }
 });
 test("draft and file selection stay local and never imply an upload",async({page})=>{
+ await page.route("**/api/operational/intake-config",r=>r.fulfill({json:{enabled:false,emailEnabled:true}}));
  await page.goto("/");await page.getByLabel("Your name",{exact:true}).fill("Preview user");
  await page.getByLabel("Your email").fill("preview@example.invalid");
  await page.getByLabel("Tell us about your idea").fill("A concept enclosure for design review.");

@@ -72,7 +72,7 @@ test("reduced motion stays static with no WebGL scene and quote remains availabl
  await expect(page.getByText("Reduced motion: static illustration.",{exact:false})).toBeVisible();
  await expect(page.locator("#assembly canvas")).toHaveCount(0);
  await page.getByRole("navigation").getByRole("link",{name:"Your project"}).count();
- await page.locator("#quote").scrollIntoViewIfNeeded();await expect(page.getByLabel("Your name",{exact:true})).toBeVisible();
+ await page.locator("#quote").scrollIntoViewIfNeeded();await expect(page.getByRole("link",{name:"Email TAKWEEN LABS"})).toBeVisible();await expect(page.getByRole("link",{name:"Email TAKWEEN LABS"})).toHaveAttribute("href","mailto:takweenlabs.in@gmail.com");
 });
 
 test("WebGL failure leaves a usable static story and business content",async({page})=>{
@@ -95,7 +95,7 @@ test("entry is skippable, remembered and bypassed by direct links",async({page})
  await page.getByRole("button",{name:"ENTER THE EXPERIENCE"}).click();await expect(intro).not.toBeVisible();
  await page.reload();await expect(intro).not.toBeVisible();
  await page.evaluate(()=>sessionStorage.removeItem("takween-entry-seen"));await page.goto("/#quote");await expect(intro).not.toBeVisible();
- await expect(page.getByLabel("Your name",{exact:true})).toBeVisible();
+ await expect(page.getByRole("link",{name:"Email TAKWEEN LABS"})).toBeVisible();await expect(page.getByRole("link",{name:"Email TAKWEEN LABS"})).toHaveAttribute("href","mailto:takweenlabs.in@gmail.com");
 });
 
 test("touch surface reserves vertical scrolling and scene does not overflow",async({page},info)=>{

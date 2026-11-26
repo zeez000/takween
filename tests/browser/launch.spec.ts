@@ -19,7 +19,7 @@ test("rendered SEO, crawl controls and private-route exclusions",async({page,req
   await expect(page).toHaveTitle("TAKWEEN LABS | Custom 3D Printing in Bengaluru");
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content",/planned custom plastic FDM/);
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content",/TAKWEEN LABS/);
-  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content","summary");
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content","summary_large_image");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content",seo.indexable?"index, follow":"noindex, nofollow");
   const canonical=page.locator('link[rel="canonical"]');
   if(seo.url){
@@ -56,7 +56,7 @@ test("internal links, images and browser diagnostics",async({page,request})=>{
     if(href.startsWith("#")) expect(await page.locator(`[id="${href.slice(1)}"]`).count(),href).toBe(1);
     else if(href.startsWith("/")) expect((await request.get(href)).ok(),href).toBe(true);
   }
-  expect(hrefs.filter(href=>href.startsWith("mailto:"))).toEqual(["mailto:takweenlabs.in@gmail.com"]);
+  expect(hrefs.filter(href=>href.startsWith("mailto:"))).toEqual(["mailto:takweenlabs.in@gmail.com","mailto:takweenlabs.in@gmail.com"]);
   expect(hrefs.filter(href=>/^(tel:|https?:)/.test(href))).toEqual([]);
   expect(await page.locator("img").evaluateAll(images=>images.filter(i=>!(i instanceof HTMLImageElement)||!i.hasAttribute("alt")||!i.complete||i.naturalWidth===0).length)).toBe(0);
   expect(errors).toEqual([]);

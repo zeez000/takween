@@ -30,6 +30,12 @@ Production stages, stock reservation/consumption and verified private tracking.
 
 ## Phase 4 - Operations
 
+26 November 2026: local private inventory, maintenance, cost estimates, scheduling,
+manual finance, draft catalogue, owner summaries and contacts/exports implemented
+for review on codex/business-operations-sprint. See docs/BUSINESS_OPERATIONS_SPRINT.md.
+Hosted migrations and activation remain unapproved. Product publishing, payments,
+customer accounts and customer uploads remain deferred.
+
 Spool movement ledger, product publishing, permission-backed portfolio media,
 payments/refunds, expenses and reporting. Separate estimates, actual job margin
 and cash flow. Add audit trail, backups, deletion workflows and monitoring.

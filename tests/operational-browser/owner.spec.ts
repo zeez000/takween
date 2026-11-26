@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {readFile} from 'node:fs/promises';import {createHmac} from 'node:crypto';
 import {createRequire} from 'node:module';
+import {localInvitation} from './local-invitation';
 declare global{interface Window{axe:typeof import('axe-core')}}
 async function audit(page:import('@playwright/test').Page){
   await page.addScriptTag({path:createRequire(import.meta.url).resolve('axe-core/axe.min.js')});
@@ -49,8 +50,7 @@ test('real local persistent enquiry stores and never sends email',async({page})=
   await page.screenshot({path:`artifacts/phase2/persistent-${test.info().project.name}.png`,fullPage:false});
 });
 test('local invitation enables password and TOTP setup without a public signup',async({page})=>{
-  const fixture=JSON.parse(await readFile('artifacts/phase2/browser-fixture.json','utf8'));
-  const invite=fixture.invites[test.info().project.name];
+  const invite=await localInvitation();
   await page.goto('/owner');await page.evaluate(hash=>{const link=document.createElement('a');link.href=`/owner/callback?type=invite&token_hash=${encodeURIComponent(hash)}`;document.body.append(link);link.click();},invite.hash);
   await expect(page.getByLabel('New owner password')).toBeVisible();
   await audit(page);
