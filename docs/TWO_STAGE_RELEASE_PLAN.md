@@ -45,7 +45,13 @@ or indexing silently to obtain a preview. Instagram bio links remain ordinary
 links even if a card is unavailable. A mailto link opens the visitor's configured
 mail app, not necessarily Gmail, and does not itself send anything.
 
-## External automation gate — latest status pending
+## External automation gate — reconfirmed for checkpoint push
+
+Owner has now reconfirmed Connect repository in Cloudflare Builds, Supabase
+production deployment OFF and automatic branching unavailable on Free. Final
+pre-push check cleared the documentation-only security checkpoint for the existing
+branch and draft PR #7. No merge/deployment/hosted changes are authorized. The
+pending status below is historical and superseded by this confirmation.
 
 Latest owner instruction supersedes the earlier confirmation below: Supabase
 production deployment OFF is confirmed, but Cloudflare automation confirmation

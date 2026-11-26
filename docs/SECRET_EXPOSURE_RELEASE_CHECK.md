@@ -53,7 +53,18 @@ https://github.com/zeez000/takween/actions/runs/45775961538 .
 This was observed, not rerun by this audit. The local documentation checkpoint
 after it is not itself a new CI-tested application revision.
 
-## Decision and next action
+## Final pre-push clearance
+
+Owner reconfirmed Cloudflare Builds displays Connect repository (Git integration
+disconnected), Supabase production deployment OFF and automatic branching
+unavailable on Free. This supersedes the pending status above. The final check
+found only documentation changes since the scanned source, unchanged non-deploying
+CI, all operational/indexing gates false, and existing draft PR #7 targeting
+codex/combined-release. **GO for pushing this security documentation checkpoint
+to the same branch and verifying CI only.** No merge, deployment, hosted migration
+or gate activation is authorized. Previous scans are retained without repetition.
+
+## Previous pending decision (superseded by clearance above)
 
 **Secret-exposure audit: no confirmed privileged credential exposure in the
 examined scope. Pre-push decision: NO-GO while Cloudflare automation confirmation
